@@ -44,18 +44,18 @@ Desde la carpeta del proyecto:
 
 - Para exponer en la LAN (accesible desde otros dispositivos):
 ```bash
-python xoniter.py --host 0.0.0.0 --port 5000
+python start.py
 # o
-python3 xoniter.py --host 0.0.0.0 --port 5000
+python3 start.py --host 0.0.0.0 --port 5100
 ```
 
 - Para restringir solo a la máquina local:
 ```bash
-python xoniter.py --host 127.0.0.1 --port 5000
+python start.py --host 127.0.0.1 --port 5100
 ```
 
 Abre en el navegador del dispositivo cliente:
-http://<IP_DEL_HOST>:5000/
+http://<IP_DEL_HOST>:5100/
 
 ---
 
