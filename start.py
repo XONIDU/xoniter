@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template
 import subprocess
 import argparse
 import html
@@ -17,87 +17,6 @@ app = Flask(__name__)
 
 # Variable global para almacenar la contraseña de sudo
 sudo_password = None
-
-PAGE = """
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Xoniter Simple - Español</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 18px; background:#f7f7f9; color:#222; }
-    .container { max-width:900px; margin:0 auto; background:#fff; padding:18px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
-    textarea { width:100%; height:160px; padding:10px; font-family: monospace; font-size:14px; }
-    pre { background:#0b0b0b; color:#e6e6e6; padding:12px; border-radius:6px; overflow:auto; }
-    input[type=text], input[type=number], button { padding:10px; margin-top:8px; }
-    .warn { background:#fff3cd; padding:10px; border-radius:6px; color:#856404; }
-    .info { background:#d1ecf1; padding:10px; border-radius:6px; color:#0c5460; }
-    .success { background:#d4edda; padding:10px; border-radius:6px; color:#155724; }
-    .meta { color:#555; font-size:0.9rem; }
-    .btn { display:inline-block; padding:10px 20px; background:#007bff; color:white; border:none; border-radius:5px; cursor:pointer; text-decoration:none; }
-    .btn:hover { background:#0056b3; }
-    .url-box { background:#e9ecef; padding:10px; border-radius:6px; font-family:monospace; word-break:break-all; margin:10px 0; }
-  </style>
-</head>
-<body>                                                                                                                                                                                        
-  <div class="container">                                                                                                                                                                     
-    <h1>Xoniter Simple - Español</h1>                                                                                                                                                                   
-    <p class="warn"><strong>Advertencia:</strong> Esta página ejecuta comandos en el sistema. No expongas a redes no confiables.</p>
-    
-    {% if sudo_active %}
-    <div class="success">
-      <strong>✓ Modo Sudo Activado:</strong> Ejecutando con privilegios elevados<br>
-      <small>Todos los comandos se ejecutan automáticamente con sudo</small>
-    </div>
-    {% else %}
-    <div class="warn">
-      <strong>⚠ Modo Sudo NO Activado:</strong> Ejecutando sin privilegios elevados<br>
-      <small>Los comandos no tendrán permisos de sudo</small>
-    </div>
-    {% endif %}
-    
-    <!-- Información de acceso -->
-    <div class="info">
-      <h3>Acceso al Servidor</h3>
-      <p>Usa una de estas URLs para acceder desde otros dispositivos:</p>
-      <div class="url-box">{{ full_url }}</div>
-      <p><small>Red: {{ network_info }}</small></p>
-      <p><em>Nota: Escanea el código QR mostrado en la terminal para acceso rápido</em></p>
-    </div>
-    
-    <p class="meta">Servidor: <strong>{{ host }}:{{ port }}</strong> &nbsp; • &nbsp; Usuario: <strong>{{ user }}</strong> &nbsp; • &nbsp; Sudo: <strong>{{ sudo_status }}</strong></p>                                                                  
-                                                                                                                                                                                              
-    <form method="post">                                                                                                                                                                      
-      <label for="cmd">Comando (pega el comando completo o múltiples comandos):</label><br>                                                                                                     
-      <textarea name="cmd" id="cmd" placeholder="Ejemplo: ls -la /home o uname -a">{{ cmd_escaped }}</textarea><br>                                                                              
-      <label for="timeout">Tiempo límite (segundos, vacío = sin límite):</label>                                                                                                                     
-      <input type="number" name="timeout" id="timeout" min="1" value="{{ timeout_value }}"><br>                                                                                               
-      <button type="submit" class="btn">Ejecutar con Sudo</button>                                                                                                                                                      
-    </form>
-
-    {% if ran %}
-      <h3>Comando Ejecutado:</h3>
-      <pre>{{ command }}</pre>
-
-      {% if error %}
-        <h3 style="color:crimson">Error:</h3>
-        <pre style="color:crimson">{{ error }}</pre>
-      {% endif %}
-
-      <h3>Salida STDOUT:</h3>
-      <pre>{{ stdout }}</pre>
-
-      <h3>Salida STDERR:</h3>
-      <pre>{{ stderr }}</pre>
-
-      <p class="meta">Código de retorno: <strong>{{ rc }}</strong> — Tiempo: <strong>{{ elapsed }}</strong></p>
-    {% endif %}
-
-    <p class="meta">Consejo: Para limitar la exposición, vincula a 127.0.0.1 o usa un firewall. Todos los comandos se ejecutan con sudo si está activado.</p>
-  </div>
-</body>
-</html>
-"""
 
 def get_ip_address():
     """Obtiene la dirección IP de la interfaz de red principal"""
@@ -273,8 +192,8 @@ def index():
     sudo_active = sudo_password is not None
     sudo_status = "Activado" if sudo_active else "No activado"
 
-    return render_template_string(
-        PAGE,
+    return render_template(
+        'index.html',
         host=app.config.get("HOST", DEFAULT_HOST),
         port=app.config.get("PORT", DEFAULT_PORT),
         full_url=full_url,
