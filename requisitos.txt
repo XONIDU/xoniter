@@ -1,25 +1,136 @@
 # Somos XONINDU
 
+# DEPENDENCIAS PRINCIPALES
+# Flask >= 2.0.0
+# fpdf >= 1.7.2
+# qrcode >= 7.3.1
+# Pillow >= 8.0.0
+# werkzeug >= 2.0.0
+
 # Arch Linux
 sudo pacman -S python-pip
 pip install flask
-# Ejecución (desde la carpeta del proyecto):
+pip install fpdf
+pip install qrcode[pil]
+pip install pillow
+pip install werkzeug
+# Ejecucion (desde la carpeta del proyecto):
 python start.py
 
 # Ubuntu y derivados
 sudo apt update
 sudo apt install python3 python3-pip -y
 pip3 install flask
+pip3 install fpdf
+pip3 install qrcode[pil]
+pip3 install pillow
+pip3 install werkzeug
 # Ejecucion:
 python3 start.py
 
 # Windows
 pip install flask
+pip install fpdf
+pip install qrcode[pil]
+pip install pillow
+pip install werkzeug
 # Ejecucion (PowerShell o CMD):
 python start.py
 
 # macOS
 brew install python3
 pip3 install flask
+pip3 install fpdf
+pip3 install qrcode[pil]
+pip3 install pillow
+pip3 install werkzeug
 # Ejecucion:
 python3 start.py
+
+# Instalacion rapida con requirements.txt
+# Crea un archivo requirements.txt con:
+# flask>=2.0.0
+# fpdf>=1.7.2
+# qrcode[pil]>=7.3.1
+# pillow>=8.0.0
+# werkzeug>=2.0.0
+
+# Linux/macOS
+pip3 install -r requirements.txt
+
+# Windows
+pip install -r requirements.txt
+
+# Verificar instalacion
+# Linux/macOS
+pip3 list | grep -E "flask|fpdf|qrcode|pillow"
+
+# Windows
+pip list | findstr /i "flask fpdf qrcode pillow"
+
+# start.py - Lanzador universal
+"""
+#!/usr/bin/env python3
+import os
+import sys
+import platform
+import subprocess
+import webbrowser
+from time import sleep
+
+def check_dependencies():
+    try:
+        import flask
+        import fpdf
+        import qrcode
+        import PIL
+        print("Dependencias OK")
+        return True
+    except ImportError as e:
+        print(f"Falta: {e}")
+        return False
+
+def get_python_cmd():
+    return "python" if platform.system().lower() == "windows" else "python3"
+
+def install_deps():
+    cmd = get_python_cmd()
+    if platform.system().lower() == "windows":
+        subprocess.check_call(f"{cmd} -m pip install flask fpdf qrcode[pil] pillow werkzeug", shell=True)
+    else:
+        subprocess.check_call(f"{cmd} -m pip install --user flask fpdf qrcode[pil] pillow werkzeug", shell=True)
+
+def main():
+    if not check_dependencies():
+        install_deps()
+    subprocess.run([get_python_cmd(), "app.py"])
+
+if __name__ == "__main__":
+    main()
+"""
+
+# Puertos
+# Generador Citas: 5000
+# Cifrador XONIENCRIPT: 5500
+
+# Solucion de problemas
+
+# pip no encontrado
+# Linux/macOS
+python3 -m ensurepip --upgrade
+# Windows
+python -m ensurepip --upgrade
+
+# Error fpdf
+pip install fpdf2
+
+# Puerto en uso
+# Linux/macOS
+lsof -i :5000
+kill -9 [PID]
+# Windows
+netstat -ano | findstr :5000
+taskkill /PID [PID] /F
+
+# Desarrollado por XONIDU
+# Version 2.0 - 2025
