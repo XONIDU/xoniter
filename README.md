@@ -1,77 +1,176 @@
-# 📄 XONITER
+## 📘 **README.md - ENGLISH VERSION (Ready to Copy & Paste)**
 
----
+```markdown
+# XONITER - Lightweight Remote Command Executor
 
-## 🎯 Objetivo
+XONITER provides a minimal web interface to send and execute commands on a Linux machine from another device on the same local network. It is designed to streamline command input on systems without a graphical environment (pure terminal) from a mobile phone or laptop on the LAN.
 
-XONITER proporciona una interfaz web mínima para enviar y ejecutar comandos en una máquina Linux desde otro dispositivo en la misma red local. Está pensado para agilizar la introducción de comandos en sistemas sin entorno gráfico (terminal pura) desde un móvil o portátil en la LAN.
+## 🎯 Goal
 
----
+Make it easy to run Linux commands remotely when:
+- You're working on a headless server
+- SSH is not practical at the moment
+- You want to quickly test something from your phone
+- You need to help someone else run commands on their system
 
-## 🛠️ Instalación (rápida)
+## ⚠️ Security Warning
 
-Instala Python 3 y Flask:
+**This tool is for TRUSTED LOCAL NETWORKS ONLY.** It provides no authentication and executes arbitrary commands. Never expose it to the internet or untrusted networks.
 
-- Arch Linux:
+## 🛠️ Quick Installation
+
+Install Python 3 and Flask:
+
+### Arch Linux
 ```bash
 sudo pacman -S python-pip
 pip install flask
 ```
 
-- Ubuntu / Debian:
+### Ubuntu / Debian
 ```bash
 sudo apt update
 sudo apt install python3 python3-pip -y
 pip3 install flask
 ```
 
-- Windows:
-```powershell
+### Windows
+```bash
 pip install flask
 ```
 
-- macOS (Homebrew):
+### macOS (Homebrew)
 ```bash
 brew install python3
 pip3 install flask
 ```
 
----
+### Optional: QR Code Support
+To generate QR codes in the terminal, install the qrcode library:
+```bash
+pip install qrcode  # or pip3 install qrcode
+```
 
-## ▶️ Ejecución
+## ▶️ Execution
 
-Desde la carpeta del proyecto:
+From the project folder:
 
-- Para exponer en la LAN (accesible desde otros dispositivos):
+### Expose on LAN (accessible from other devices)
 ```bash
 python start.py
-# o
+# or
 python3 start.py --host 0.0.0.0 --port 5100
 ```
 
-- Para restringir solo a la máquina local:
+### Restrict to local machine only (safer for testing)
 ```bash
 python start.py --host 127.0.0.1 --port 5100
 ```
 
-Abre en el navegador del dispositivo cliente:
-http://<IP_DEL_HOST>:5100/
+### Run without sudo
+```bash
+python start.py --no-sudo
+```
 
----
+### Disable QR code
+```bash
+python start.py --no-qr
+```
 
-## 🧾 Uso
+## 🧾 Usage
 
-- Pega o escribe el comando en el área de texto y pulsa "Run".  
-- Revisa STDOUT, STDERR y el código de salida que devuelve la página.  
-- Usa el campo de timeout para limitar el tiempo de ejecución (opcional).
+1. **Start the server** using one of the commands above
+2. **Note the URL** displayed in the terminal (e.g., `http://192.168.1.100:5100/`)
+3. **Open the URL** in a browser on any device on the same network
+4. **Enter your sudo password** when prompted (if using sudo mode)
+5. **Paste or type a command** in the text area and click "Execute Command"
+6. **Review the output**:
+   - STDOUT (standard output)
+   - STDERR (standard error)
+   - Return code
+   - Execution time
 
----
+### Optional Timeout
+Use the timeout field to limit how long a command can run (in seconds). This prevents commands from hanging indefinitely.
 
-## ❓ ¿Dudas o sugerencias?
+## 📸 Features
 
-Puedes comunicarte con el equipo de **XONIDU** a través de los siguientes medios:
+| Feature | Description |
+|---------|-------------|
+| **Clean web interface** | Simple, mobile-friendly design |
+| **Sudo support** | Optional password elevation |
+| **Command timeout** | Prevent runaway processes |
+| **QR code generation** | Scan from phone for instant access |
+| **Command filtering** | Blocks dangerous commands (rm by default) |
+| **Pacman safety** | Auto-adds --noconfirm for Arch Linux |
+| **Cross-platform** | Works on any Linux with Python 3 |
 
-- 📸 **Instagram:** [@xonidu](https://instagram.com/xonidu)  
-- 📘 **Facebook:** [xonidu](https://www.facebook.com/profile.php?id=61572209206888)  
+## 📁 Project Structure
+
+```
+xoniter/
+├── start.py          # Main application
+└── templates/
+    └── index.html      # Web interface template
+```
+
+## 🔧 Command Line Options
+
+| Option | Description |
+|--------|-------------|
+| `--host HOST` | Host to bind to (default: 0.0.0.0) |
+| `--port PORT` | Port to bind to (default: 5100) |
+| `--no-sudo` | Disable sudo mode (run without privileges) |
+| `--no-qr` | Disable QR code display |
+
+## ⚡ Example Commands to Try
+
+```bash
+# Basic system info
+uname -a
+
+# List home directory
+ls -la /home
+
+# Check disk usage
+df -h
+
+# Check memory
+free -h
+
+# Network info
+ip addr show
+
+# Update package list (Debian/Ubuntu)
+sudo apt update
+
+# Update system (Arch)
+sudo pacman -Syu
+```
+
+## ⚠️ Known Limitations
+
+- ❌ No authentication (trusted networks only)
+- ❌ Basic command filtering only (can be bypassed)
+- ❌ No HTTPS (use a reverse proxy for encryption)
+- ❌ Sudo password stored in memory
+- ❌ Not suitable for multi-user environments
+
+## 🔒 Security Recommendations
+
+For safer deployment:
+1. **Use a firewall** to restrict access to specific IPs
+2. **Run with --no-sudo** when possible
+3. **Bind to 127.0.0.1** and use SSH tunneling
+4. **Add HTTP Basic Authentication** (modify the code)
+5. **Use a reverse proxy** with SSL/TLS
+6. **Run in a container** with limited permissions
+
+## ❓ Questions or Suggestions?
+
+Contact the XONIDU team through:
+
+- 📸 **Instagram:** [@xonidu](https://instagram.com/xonidu)
+- 📘 **Facebook:** [xonidu](https://facebook.com/xonidu)
 - 📧 **Email:** xonidu@gmail.com
-- 👤 **Creador:** Darian Alberto Camacho Salas
+- 👤 **Creator:** Darian Alberto Camacho Salas
