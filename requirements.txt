@@ -1,0 +1,49 @@
+#Somos XONIDU
+Darian Alberto Camacho Salas
+
+#Xoniter Simple - Sudo Command Executor
+#Dependencies: flask, qrcode[pil], pillow
+
+#Arch Linux
+sudo pacman -S python-pip
+pip install flask --break-system-packages
+pip install qrcode[pil] --break-system-packages
+pip install pillow --break-system-packages
+#Execution:
+python start.py --host 0.0.0.0 --port 5100
+
+#Ubuntu and derivatives
+sudo apt update
+sudo apt install python3 python3-pip -y
+pip3 install flask
+pip3 install qrcode[pil]
+pip3 install pillow
+#Execution:
+python3 start.py --host 0.0.0.0 --port 5100
+
+#Windows
+pip install flask
+pip install qrcode[pil]
+pip install pillow
+#Execution:
+python start.py --host 0.0.0.0 --port 5100
+
+#macOS
+brew install python3
+pip3 install flask
+pip3 install qrcode[pil]
+pip3 install pillow
+#Execution:
+python3 start.py --host 0.0.0.0 --port 5100
+
+#Additional options:
+# --no-sudo  : Run without sudo privileges
+# --no-qr    : Do not show QR code in terminal
+# --timeout  : Time limit for commands (seconds)
+# --port     : Custom port (default: 5100)
+
+#Example with options:
+python app.py --host 0.0.0.0 --port 5500 --timeout 30 --no-qr
+
+#Developed by XONIDU
+#Darian Alberto Camacho Salas
