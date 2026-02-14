@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Xoniter Simple - Español</title>
+  <title>XONITER - Remote Command Executor</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 18px; background:#f7f7f9; color:#222; }
     .container { max-width:900px; margin:0 auto; background:#fff; padding:18px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
@@ -20,42 +20,42 @@
 </head>
 <body>                                                                                                                                                                                        
   <div class="container">                                                                                                                                                                     
-    <h1>Xoniter Simple - Español</h1>                                                                                                                                                                   
-    <p class="warn"><strong>Advertencia:</strong> Esta página ejecuta comandos en el sistema. No expongas a redes no confiables.</p>
+    <h1>XONITER - Remote Command Executor</h1>                                                                                                                                                                   
+    <p class="warn"><strong>WARNING:</strong> This page executes commands on the system. Do not expose to untrusted networks.</p>
     
     {% if sudo_active %}
     <div class="success">
-      <strong>✓ Modo Sudo Activado:</strong> Ejecutando con privilegios elevados<br>
-      <small>Todos los comandos se ejecutan automáticamente con sudo</small>
+      <strong>✓ Sudo Mode Enabled:</strong> Running with elevated privileges<br>
+      <small>All commands will execute with sudo automatically</small>
     </div>
     {% else %}
     <div class="warn">
-      <strong>⚠ Modo Sudo NO Activado:</strong> Ejecutando sin privilegios elevados<br>
-      <small>Los comandos no tendrán permisos de sudo</small>
+      <strong>⚠ Sudo Mode Disabled:</strong> Running without elevated privileges<br>
+      <small>Commands will not have sudo permissions</small>
     </div>
     {% endif %}
     
-    <!-- Información de acceso -->
+    <!-- Access Information -->
     <div class="info">
-      <h3>Acceso al Servidor</h3>
-      <p>Usa una de estas URLs para acceder desde otros dispositivos:</p>
+      <h3>Server Access</h3>
+      <p>Use one of these URLs to access from other devices:</p>
       <div class="url-box">{{ full_url }}</div>
-      <p><small>Red: {{ network_info }}</small></p>
-      <p><em>Nota: Escanea el código QR mostrado en la terminal para acceso rápido</em></p>
+      <p><small>Network: {{ network_info }}</small></p>
+      <p><em>Note: Scan the QR code shown in the terminal for quick access</em></p>
     </div>
     
-    <p class="meta">Servidor: <strong>{{ host }}:{{ port }}</strong> &nbsp; • &nbsp; Usuario: <strong>{{ user }}</strong> &nbsp; • &nbsp; Sudo: <strong>{{ sudo_status }}</strong></p>                                                                  
+    <p class="meta">Server: <strong>{{ host }}:{{ port }}</strong> &nbsp; • &nbsp; User: <strong>{{ user }}</strong> &nbsp; • &nbsp; Sudo: <strong>{{ sudo_status }}</strong></p>                                                                  
                                                                                                                                                                                               
     <form method="post">                                                                                                                                                                      
-      <label for="cmd">Comando (pega el comando completo o múltiples comandos):</label><br>                                                                                                     
-      <textarea name="cmd" id="cmd" placeholder="Ejemplo: ls -la /home o uname -a">{{ cmd_escaped }}</textarea><br>                                                                              
-      <label for="timeout">Tiempo límite (segundos, vacío = sin límite):</label>                                                                                                                     
+      <label for="cmd">Command (paste full command or multiple commands):</label><br>                                                                                                     
+      <textarea name="cmd" id="cmd" placeholder="Example: ls -la /home or uname -a">{{ cmd_escaped }}</textarea><br>                                                                              
+      <label for="timeout">Timeout (seconds, empty = no limit):</label>                                                                                                                     
       <input type="number" name="timeout" id="timeout" min="1" value="{{ timeout_value }}"><br>                                                                                               
-      <button type="submit" class="btn">Ejecutar con Sudo</button>                                                                                                                                                      
+      <button type="submit" class="btn">Execute Command</button>                                                                                                                                                      
     </form>
 
     {% if ran %}
-      <h3>Comando Ejecutado:</h3>
+      <h3>Executed Command:</h3>
       <pre>{{ command }}</pre>
 
       {% if error %}
@@ -63,16 +63,16 @@
         <pre style="color:crimson">{{ error }}</pre>
       {% endif %}
 
-      <h3>Salida STDOUT:</h3>
+      <h3>STDOUT Output:</h3>
       <pre>{{ stdout }}</pre>
 
-      <h3>Salida STDERR:</h3>
+      <h3>STDERR Output:</h3>
       <pre>{{ stderr }}</pre>
 
-      <p class="meta">Código de retorno: <strong>{{ rc }}</strong> — Tiempo: <strong>{{ elapsed }}</strong></p>
+      <p class="meta">Return code: <strong>{{ rc }}</strong> — Time: <strong>{{ elapsed }}</strong></p>
     {% endif %}
 
-    <p class="meta">Consejo: Para limitar la exposición, vincula a 127.0.0.1 o usa un firewall. Todos los comandos se ejecutan con sudo si está activado.</p>
+    <p class="meta">Tip: To limit exposure, bind to 127.0.0.1 or use a firewall. All commands execute with sudo if enabled.</p>
   </div>
 </body>
 </html>
