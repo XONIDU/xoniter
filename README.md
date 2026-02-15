@@ -1,6 +1,5 @@
-## 📘 **README.md - ENGLISH VERSION (Ready to Copy & Paste)**
+## 📘 **README.md - ENGLISH VERSION **
 
-```markdown
 # XONITER - Lightweight Remote Command Executor
 
 XONITER provides a minimal web interface to send and execute commands on a Linux machine from another device on the same local network. It is designed to streamline command input on systems without a graphical environment (pure terminal) from a mobile phone or laptop on the LAN.
@@ -25,7 +24,6 @@ Install Python 3 and Flask:
 ```bash
 sudo pacman -S python-pip
 pip install flask
-```
 
 ### Ubuntu / Debian
 ```bash
