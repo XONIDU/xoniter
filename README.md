@@ -24,6 +24,7 @@ Install Python 3 and Flask:
 ```bash
 sudo pacman -S python-pip
 pip install flask
+```
 
 ### Ubuntu / Debian
 ```bash
