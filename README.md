@@ -1,5 +1,3 @@
-## 📘 **README.md - ENGLISH VERSION **
-
 # XONITER - Lightweight Remote Command Executor
 
 XONITER provides a minimal web interface to send and execute commands on a Linux machine from another device on the same local network. It is designed to streamline command input on systems without a graphical environment (pure terminal) from a mobile phone or laptop on the LAN.
