@@ -1,13 +1,12 @@
-#Somos XONIDU
+#XONIDU
 Darian Alberto Camacho Salas
 
-#Xoniter Simple - Sudo Command Executor
-#Dependencies: flask, qrcode[pil], pillow
+#Dependencies: flask, qrcode, pillow
 
 #Arch Linux
 sudo pacman -S python-pip
 pip install flask --break-system-packages
-pip install qrcode[pil] --break-system-packages
+pip install qrcode --break-system-packages
 pip install pillow --break-system-packages
 #Execution:
 python start.py --host 0.0.0.0 --port 5100
@@ -16,7 +15,7 @@ python start.py --host 0.0.0.0 --port 5100
 sudo apt update
 sudo apt install python3 python3-pip -y
 pip3 install flask
-pip3 install qrcode[pil]
+pip3 install qrcode
 pip3 install pillow
 #Execution:
 python3 start.py --host 0.0.0.0 --port 5100
