@@ -1,320 +1,78 @@
-<!DOCTYPE html>
-<html lang="es">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Citas - XONIDU</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .qr-section {
-            background: #f8f9fa;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid #eaeaea;
-        }
-        
-        .qr-info {
-            display: inline-block;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .qr-info p {
-            margin: 5px 0;
-            color: #666;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .section {
-            margin-bottom: 30px;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .section h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        input[type="text"], select {
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s ease;
-        }
-        
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        button {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
-        }
-        
-        .lists {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .list-box {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-        
-        .list-box h3 {
-            color: #764ba2;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 5px;
-        }
-        
-        .list-item {
-            padding: 8px 0;
-            border-bottom: 1px solid #f5f5f5;
-        }
-        
-        .list-item:last-child {
-            border-bottom: none;
-        }
-        
-        .generate-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            font-size: 1.1rem;
-            margin-top: 20px;
-            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
-        }
-        
-        .flash-messages {
-            margin: 20px 0;
-        }
-        
-        .flash {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            background: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-        }
-        
-        .badge {
-            background: #667eea;
-            color: white;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 0.9rem;
-            border-top: 1px solid #eaeaea;
-            background: #f8f9fa;
-        }
-        
-        .info-text {
-            background: #e7f3ff;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            color: #004085;
-            border-left: 4px solid #007bff;
-        }
-        
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>XONITER - Remote Command Executor</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 18px; background:#f7f7f9; color:#222; }
+    .container { max-width:900px; margin:0 auto; background:#fff; padding:18px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+    textarea { width:100%; height:160px; padding:10px; font-family: monospace; font-size:14px; }
+    pre { background:#0b0b0b; color:#e6e6e6; padding:12px; border-radius:6px; overflow:auto; }
+    input[type=text], input[type=number], button { padding:10px; margin-top:8px; }
+    .warn { background:#fff3cd; padding:10px; border-radius:6px; color:#856404; }
+    .info { background:#d1ecf1; padding:10px; border-radius:6px; color:#0c5460; }
+    .success { background:#d4edda; padding:10px; border-radius:6px; color:#155724; }
+    .meta { color:#555; font-size:0.9rem; }
+    .btn { display:inline-block; padding:10px 20px; background:#007bff; color:white; border:none; border-radius:5px; cursor:pointer; text-decoration:none; }
+    .btn:hover { background:#0056b3; }
+    .url-box { background:#e9ecef; padding:10px; border-radius:6px; font-family:monospace; word-break:break-all; margin:10px 0; }
+  </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 Generador de Citas</h1>
-            <p>Organiza tus encuentros sociales de forma fácil y divertida</p>
-        </div>
-        
-        <div class="qr-section">
-            <div class="qr-info">
-                <p>📱 URL de acceso: {{ server_url }}</p>
-            </div>
-        </div>
-        
-        <div class="content">
-            <div class="info-text">
-                <strong>🔄 Reinicio automático:</strong> Después de generar una cita, todas las listas se reinician para una nueva sesión.
-            </div>
-            
-            <div class="flash-messages">
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="flash">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-            </div>
-            
-            <div class="section">
-                <h2>👥 Asistentes</h2>
-                <form method="POST" class="form-grid">
-                    <input type="hidden" name="action" value="add_person">
-                    <input type="text" name="person" placeholder="Nombre del asistente" required>
-                    <button type="submit">➕ Añadir</button>
-                </form>
-                <div class="list-box">
-                    <h3>Asistentes <span class="badge">{{ list_p|length }}</span></h3>
-                    {% for person in list_p %}
-                        <div class="list-item">👤 {{ person }}</div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>📅 Días Disponibles</h2>
-                <form method="POST" class="form-grid">
-                    <input type="hidden" name="action" value="remove_day">
-                    <select name="day">
-                        {% for day in list_d %}
-                            <option value="{{ day }}">{{ day }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit">🗑️ Eliminar</button>
-                </form>
-                <div class="list-box">
-                    <h3>Días <span class="badge">{{ list_d|length }}</span></h3>
-                    {% for day in list_d %}
-                        <div class="list-item">📅 {{ day }}</div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>🍕 Comidas</h2>
-                <form method="POST" class="form-grid">
-                    <input type="hidden" name="action" value="add_food">
-                    <input type="text" name="food" placeholder="Ej: Pizza, Sushi" required>
-                    <button type="submit">➕ Añadir</button>
-                </form>
-                <div class="list-box">
-                    <h3>Comidas <span class="badge">{{ list_c|length }}</span></h3>
-                    {% for food in list_c %}
-                        <div class="list-item">🍴 {{ food }}</div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>🏙️ Lugares</h2>
-                <form method="POST" class="form-grid">
-                    <input type="hidden" name="action" value="add_place">
-                    <input type="text" name="place" placeholder="Ej: Parque, Cine" required>
-                    <button type="submit">➕ Añadir</button>
-                </form>
-                <div class="list-box">
-                    <h3>Lugares <span class="badge">{{ list_l|length }}</span></h3>
-                    {% for place in list_l %}
-                        <div class="list-item">📍 {{ place }}</div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <form method="POST">
-                <input type="hidden" name="action" value="generate">
-                <button type="submit" class="generate-btn">
-                    🎲 Generar Cita y Descargar PDF
-                </button>
-            </form>
-        </div>
-        
-        <div class="footer">
-            <p>Generador de Citas XONIDU © 2025 | Reinicio automático después de cada cita</p>
-        </div>
+<body>                                                                                                                                                                                        
+  <div class="container">                                                                                                                                                                     
+    <h1>XONITER - Remote Command Executor</h1>                                                                                                                                                                   
+    <p class="warn"><strong>WARNING:</strong> This page executes commands on the system. Do not expose to untrusted networks.</p>
+    
+    {% if sudo_active %}
+    <div class="success">
+      <strong>✓ Sudo Mode Enabled:</strong> Running with elevated privileges<br>
+      <small>All commands will execute with sudo automatically</small>
     </div>
+    {% else %}
+    <div class="warn">
+      <strong>⚠ Sudo Mode Disabled:</strong> Running without elevated privileges<br>
+      <small>Commands will not have sudo permissions</small>
+    </div>
+    {% endif %}
+    
+    <!-- Access Information -->
+    <div class="info">
+      <h3>Server Access</h3>
+      <p>Use one of these URLs to access from other devices:</p>
+      <div class="url-box">{{ full_url }}</div>
+      <p><small>Network: {{ network_info }}</small></p>
+      <p><em>Note: Scan the QR code shown in the terminal for quick access</em></p>
+    </div>
+    
+    <p class="meta">Server: <strong>{{ host }}:{{ port }}</strong> &nbsp; • &nbsp; User: <strong>{{ user }}</strong> &nbsp; • &nbsp; Sudo: <strong>{{ sudo_status }}</strong></p>                                                                  
+                                                                                                                                                                                              
+    <form method="post">                                                                                                                                                                      
+      <label for="cmd">Command (paste full command or multiple commands):</label><br>                                                                                                     
+      <textarea name="cmd" id="cmd" placeholder="Example: ls -la /home or uname -a">{{ cmd_escaped }}</textarea><br>                                                                              
+      <label for="timeout">Timeout (seconds, empty = no limit):</label>                                                                                                                     
+      <input type="number" name="timeout" id="timeout" min="1" value="{{ timeout_value }}"><br>                                                                                               
+      <button type="submit" class="btn">Execute Command</button>                                                                                                                                                      
+    </form>
+
+    {% if ran %}
+      <h3>Executed Command:</h3>
+      <pre>{{ command }}</pre>
+
+      {% if error %}
+        <h3 style="color:crimson">Error:</h3>
+        <pre style="color:crimson">{{ error }}</pre>
+      {% endif %}
+
+      <h3>STDOUT Output:</h3>
+      <pre>{{ stdout }}</pre>
+
+      <h3>STDERR Output:</h3>
+      <pre>{{ stderr }}</pre>
+
+      <p class="meta">Return code: <strong>{{ rc }}</strong> — Time: <strong>{{ elapsed }}</strong></p>
+    {% endif %}
+
+    <p class="meta">Tip: To limit exposure, bind to 127.0.0.1 or use a firewall. All commands execute with sudo if enabled.</p>
+  </div>
 </body>
 </html>
