@@ -161,7 +161,6 @@ For safer deployment:
 3. **Bind to 127.0.0.1** and use SSH tunneling
 4. **Add HTTP Basic Authentication** (modify the code)
 5. **Use a reverse proxy** with SSL/TLS
-6. **Run in a container** with limited permissions
 
 ## ❓ Questions or Suggestions?
 
