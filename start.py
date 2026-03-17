@@ -50,8 +50,7 @@ def get_system():
 def get_linux_distro():
     """Detect Linux distribution"""
     if get_system() != 'linux':
-        return None
-    
+        return None    
     try:
         if os.path.exists('/etc/os-release'):
             with open('/etc/os-release', 'r') as f:
