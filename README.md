@@ -5,6 +5,7 @@ XONITER provides a minimal web interface to send and execute commands on a Linux
 ## 🎯 Goal
 
 Make it easy to run Linux commands remotely when:
+
 - You're working on a headless server
 - SSH is not practical at the moment
 - You want to quickly test something from your phone
@@ -14,67 +15,88 @@ Make it easy to run Linux commands remotely when:
 
 **This tool is for TRUSTED LOCAL NETWORKS ONLY.** It provides no authentication and executes arbitrary commands. Never expose it to the internet or untrusted networks.
 
-## 🛠️ Quick Installation
+## 📋 Requirements
 
-Install Python 3 and Flask:
+- **Operating System**: Linux (any distribution), Windows, or macOS
+- **Python**: Version 3.6 or higher
+- **Dependencies**: Flask, qrcode, Pillow (automatically installed by xoniter.py)
 
-### Arch Linux
+## 🚀 Quick Start
+
+### Option 1: Using the Installer (Recommended)
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/XONIDU/xoniter.git
+   cd xoniter
+   ```
+
+2. Run the installer script:
+   ```bash
+   python xoniter.py
+   ```
+
+   The installer will:
+   - Check your Python version
+   - Detect your operating system and Linux distribution
+   - Install all required dependencies automatically
+   - Create platform-specific shortcuts
+   - Launch the main XONITER application
+
+### Option 2: Manual Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/XONIDU/xoniter.git
+   cd xoniter
+   ```
+
+2. Install dependencies:
+   ```bash
+   # For most Linux distributions (Ubuntu, Debian, Mint)
+   pip install --user flask qrcode[pil] pillow
+
+   # For Arch Linux, Manjaro, Fedora
+   pip install --break-system-packages flask qrcode[pil] pillow
+
+   # For Windows/macOS
+   pip install flask qrcode[pil] pillow
+   ```
+
+3. Run XONITER:
+   ```bash
+   python xoniter.py --host 0.0.0.0 --port 5100
+   ```
+
+## 📖 Usage
+
+### Basic Execution
+
 ```bash
-sudo pacman -S python-pip
-pip install flask
+# Run with default settings (localhost only)
+python xoniter.py
+
+# Expose on local network
+python xoniter.py --host 0.0.0.0 --port 5100
+
+# Secure mode (local only, no sudo)
+python xoniter.py --host 127.0.0.1 --port 5100 --no-sudo
+
+# Disable QR code
+python xoniter.py --no-qr
 ```
 
-### Ubuntu / Debian
-```bash
-sudo apt update
-sudo apt install python3 python3-pip -y
-pip3 install flask
-```
+### Command Line Options
 
-### Windows
-```bash
-pip install flask
-```
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--host HOST` | Host to bind to | `0.0.0.0` |
+| `--port PORT` | Port to bind to | `5100` |
+| `--no-sudo` | Disable sudo mode | Enabled |
+| `--no-qr` | Disable QR code display | Enabled |
+| `-h, --help` | Show help message | - |
 
-### macOS (Homebrew)
-```bash
-brew install python3
-pip3 install flask
-```
-
-### Optional: QR Code Support
-To generate QR codes in the terminal, install the qrcode library:
-```bash
-pip install qrcode  # or pip3 install qrcode
-```
-
-## ▶️ Execution
-
-From the project folder:
-
-### Expose on LAN (accessible from other devices)
-```bash
-python start.py
-# or
-python3 start.py --host 0.0.0.0 --port 5100
-```
-
-### Restrict to local machine only (safer for testing)
-```bash
-python start.py --host 127.0.0.1 --port 5100
-```
-
-### Run without sudo
-```bash
-python start.py --no-sudo
-```
-
-### Disable QR code
-```bash
-python start.py --no-qr
-```
-
-## 🧾 Usage
+### How to Use
 
 1. **Start the server** using one of the commands above
 2. **Note the URL** displayed in the terminal (e.g., `http://192.168.1.100:5100/`)
@@ -88,9 +110,10 @@ python start.py --no-qr
    - Execution time
 
 ### Optional Timeout
+
 Use the timeout field to limit how long a command can run (in seconds). This prevents commands from hanging indefinitely.
 
-## 📸 Features
+## ✨ Features
 
 | Feature | Description |
 |---------|-------------|
@@ -100,27 +123,38 @@ Use the timeout field to limit how long a command can run (in seconds). This pre
 | **QR code generation** | Scan from phone for instant access |
 | **Command filtering** | Blocks dangerous commands (rm by default) |
 | **Pacman safety** | Auto-adds --noconfirm for Arch Linux |
-| **Cross-platform** | Works on any Linux with Python 3 |
+| **Cross-platform** | Works on Linux, Windows, and macOS |
+| **Automatic IP detection** | Detects and displays local IP |
+| **Platform shortcuts** | Creates .bat (Windows), .sh (Linux), .command (macOS) |
 
 ## 📁 Project Structure
 
 ```
 xoniter/
-├── start.py          # Main application
-└── templates/
-    └── index.html      # Web interface template
+├── xoniter.py           # Main application (Python/Flask)
+├── start.py             # Installer/launcher script
+├── templates/
+│   └── index.html       # Web interface template
+├── README.md            # This file
+└── requirements.txt     # Dependencies (optional)
 ```
 
-## 🔧 Command Line Options
+## 🛠️ Platform-Specific Notes
 
-| Option | Description |
-|--------|-------------|
-| `--host HOST` | Host to bind to (default: 0.0.0.0) |
-| `--port PORT` | Port to bind to (default: 5100) |
-| `--no-sudo` | Disable sudo mode (run without privileges) |
-| `--no-qr` | Disable QR code display |
+### Linux
+- **Arch/Manjaro/Fedora**: The installer automatically uses `--break-system-packages`
+- **Ubuntu/Debian/Mint**: Uses `--user` flag for safe installation
+- All distributions: Creates `START_XONITER.sh` launcher
 
-## ⚡ Example Commands to Try
+### Windows
+- Creates `START_XONITER.bat` for easy double-click execution
+- No special package manager flags needed
+
+### macOS
+- Creates `START_XONITER.command` launcher
+- Uses `--user` flag for installations
+
+## 🔧 Example Commands to Try
 
 ```bash
 # Basic system info
@@ -156,17 +190,45 @@ sudo pacman -Syu
 ## 🔒 Security Recommendations
 
 For safer deployment:
-1. **Use a firewall** to restrict access to specific IPs
-2. **Run with --no-sudo** when possible
-3. **Bind to 127.0.0.1** and use SSH tunneling
-4. **Add HTTP Basic Authentication** (modify the code)
-5. **Use a reverse proxy** with SSL/TLS
 
-## ❓ Questions or Suggestions?
+- Use a firewall to restrict access to specific IPs
+- Run with `--no-sudo` when possible
+- Bind to `127.0.0.1` and use SSH tunneling
+- Add HTTP Basic Authentication (modify the code)
+- Use a reverse proxy with SSL/TLS
+- Run in a container with limited permissions
+
+## 🐛 Troubleshooting
+
+### "Command not found" for pip/pip3
+```bash
+# Ubuntu/Debian
+sudo apt install python3-pip
+
+# Arch/Manjaro
+sudo pacman -S python-pip
+
+# Fedora
+sudo dnf install python3-pip
+```
+
+### Import errors
+Run the installer again:
+```bash
+python xoniter.py
+```
+
+### Permission denied for binding to port
+Use a port above 1024 (default is 5100) or run with sudo:
+```bash
+sudo python xoniter.py --host 0.0.0.0 --port 80
+```
+
+## 📞 Questions or Suggestions?
 
 Contact the XONIDU team through:
 
-- 📸 **Instagram:** [@xonidu](https://instagram.com/xonidu)
-- 📘 **Facebook:** [xonidu](https://facebook.com/xonidu)
-- 📧 **Email:** xonidu@gmail.com
-- 👤 **Creator:** Darian Alberto Camacho Salas
+- 📸 Instagram: [@xonidu](https://instagram.com/xonidu)
+- 📘 Facebook: [xonidu](https://facebook.com/xonidu)
+- 📧 Email: xonidu@gmail.com
+- 👤 Creator: Darian Alberto Camacho Salas
