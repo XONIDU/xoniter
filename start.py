@@ -151,8 +151,7 @@ def check_dependencies():
     if get_system() == 'linux':
         # XONITER doesn't require system dependencies like xdotool/scrot
         # But we check if the system is ready for network binding
-        pass
-    
+        pass    
     return missing
 
 def install_dependencies(missing):
