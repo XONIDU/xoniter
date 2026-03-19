@@ -1,5 +1,5 @@
 #XONIDU
-Darian Alberto Camacho Salas
+#Creator: Darian Alberto Camacho Salas
 
 #Dependencies: flask, qrcode, pillow
 
