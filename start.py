@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-XONITER 2026 - Lightweight Remote Command Executor
-This script runs xoniter.py and verifies dependencies
+XONITER 2026 - Lightweight Remote Command Executor Installer
+This script runs xoniter.py and verifies dependencies with multiple fallback options
 Developed by: Darian Alberto Camacho Salas
 #Somos XONIDU
 """
@@ -14,6 +14,7 @@ import os
 import platform
 import shutil
 import importlib.util
+import time
 
 # Terminal colors
 class Colors:
@@ -50,7 +51,8 @@ def get_system():
 def get_linux_distro():
     """Detect Linux distribution"""
     if get_system() != 'linux':
-        return None    
+        return None
+    
     try:
         if os.path.exists('/etc/os-release'):
             with open('/etc/os-release', 'r') as f:
@@ -69,6 +71,8 @@ def get_linux_distro():
                     return 'manjaro'
                 elif 'mint' in content:
                     return 'mint'
+                elif 'opensuse' in content:
+                    return 'opensuse'
         return 'linux-generic'
     except:
         return 'linux-generic'
@@ -139,82 +143,135 @@ def check_dependencies():
     ]
     
     missing = []
+    installed = []
     
     for module, package, desc, import_name in dependencies:
         if check_python_module(import_name):
             print(f"{Colors.GREEN}  - {module}: OK{Colors.END}")
+            installed.append(module)
         else:
             print(f"{Colors.YELLOW}  - {module}: MISSING{Colors.END}")
             missing.append(package)
     
-    # Check system dependencies for Linux
-    if get_system() == 'linux':
-        # XONITER doesn't require system dependencies like xdotool/scrot
-        # But we check if the system is ready for network binding
-        pass    
-    return missing
+    return missing, installed
+
+def install_with_pip(packages, extra_args=None):
+    """Try to install packages with pip and optional extra arguments"""
+    system = get_system()
+    distro = get_linux_distro()
+    
+    # Build installation strategies based on system
+    strategies = []
+    
+    # Strategy 1: Standard pip install
+    strategies.append([sys.executable, '-m', 'pip', 'install'])
+    
+    # Strategy 2: With --user flag
+    if system != 'windows':
+        strategies.append([sys.executable, '-m', 'pip', 'install', '--user'])
+    
+    # Strategy 3: With --break-system-packages (for all Linux distributions)
+    if system == 'linux':
+        strategies.append([sys.executable, '-m', 'pip', 'install', '--break-system-packages'])
+    
+    # Strategy 4: With --user and --break-system-packages combined
+    if system == 'linux':
+        strategies.append([sys.executable, '-m', 'pip', 'install', '--user', '--break-system-packages'])
+    
+    # Strategy 5: Try with python -m pip install --ignore-installed
+    strategies.append([sys.executable, '-m', 'pip', 'install', '--ignore-installed'])
+    
+    # Strategy 6: Try with pip3 directly if available
+    if check_command('pip3'):
+        strategies.append(['pip3', 'install'])
+        if system == 'linux':
+            strategies.append(['pip3', 'install', '--break-system-packages'])
+            strategies.append(['pip3', 'install', '--user'])
+    
+    # Strategy 7: Try with pip directly
+    if check_command('pip'):
+        strategies.append(['pip', 'install'])
+    
+    # Try each strategy
+    for idx, strategy in enumerate(strategies, 1):
+        cmd = strategy + packages
+        print(f"\n  Attempt {idx}: {' '.join(cmd)}")
+        
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            if result.returncode == 0:
+                print(f"{Colors.GREEN}  Success!{Colors.END}")
+                return True
+            else:
+                print(f"{Colors.YELLOW}  Failed (return code {result.returncode}){Colors.END}")
+                if result.stderr:
+                    print(f"    Error: {result.stderr[:200]}")
+        except subprocess.TimeoutExpired:
+            print(f"{Colors.YELLOW}  Timeout{Colors.END}")
+        except Exception as e:
+            print(f"{Colors.YELLOW}  Error: {str(e)[:100]}{Colors.END}")
+    
+    return False
 
 def install_dependencies(missing):
-    """Install missing dependencies"""
+    """Install missing dependencies with multiple fallback strategies"""
     if not missing:
         return True
     
     print(f"\n{Colors.BOLD}Installing missing dependencies...{Colors.END}")
+    print(f"Packages to install: {', '.join(missing)}")
+    
+    # Try automatic installation with multiple strategies
+    print(f"\n{Colors.BOLD}Trying multiple installation methods...{Colors.END}")
+    
+    if install_with_pip(missing):
+        print(f"\n{Colors.GREEN}All dependencies installed successfully!{Colors.END}")
+        return True
+    
+    # If all automatic methods failed, show manual instructions
+    print(f"\n{Colors.RED}Automatic installation failed.{Colors.END}")
+    print(f"\n{Colors.YELLOW}Please install dependencies manually:{Colors.END}")
     
     system = get_system()
     distro = get_linux_distro()
     
-    # Python packages to install
-    python_packages = [p for p in missing if not p.startswith('system-')]
+    if system == 'linux':
+        if distro in ['arch', 'manjaro']:
+            print(f"\n  For {distro.upper()}:")
+            print(f"    sudo pacman -S python-pip")
+            print(f"    pip install --break-system-packages {' '.join(missing)}")
+        elif distro in ['ubuntu', 'debian', 'mint']:
+            print(f"\n  For {distro.upper()}:")
+            print(f"    sudo apt update")
+            print(f"    sudo apt install python3-pip -y")
+            print(f"    pip install --user {' '.join(missing)}")
+        elif distro in ['fedora']:
+            print(f"\n  For FEDORA:")
+            print(f"    sudo dnf install python3-pip")
+            print(f"    pip install --break-system-packages {' '.join(missing)}")
+        else:
+            print(f"\n  For Linux:")
+            print(f"    # Try with --break-system-packages (Arch, Fedora, modern distributions)")
+            print(f"    pip install --break-system-packages {' '.join(missing)}")
+            print(f"    # Or with --user (Ubuntu, Debian, older distributions)")
+            print(f"    pip install --user {' '.join(missing)}")
+    elif system == 'darwin':
+        print(f"\n  For macOS:")
+        print(f"    brew install python3")
+        print(f"    pip3 install --user {' '.join(missing)}")
+    elif system == 'windows':
+        print(f"\n  For Windows:")
+        print(f"    python -m pip install {' '.join(missing)}")
     
-    # Install Python packages
-    if python_packages:
-        print(f"Python packages to install: {', '.join(python_packages)}")
-        
-        # Build installation command
-        cmd = [sys.executable, '-m', 'pip', 'install']
-        
-        # Add options based on system
-        if system == 'linux':
-            if distro in ['arch', 'manjaro', 'fedora']:
-                cmd.append('--break-system-packages')
-                print(f"{Colors.YELLOW}Using --break-system-packages for {distro}{Colors.END}")
-            else:
-                cmd.append('--user')
-        elif system == 'darwin':
-            cmd.append('--user')
-        
-        cmd.extend(python_packages)
-        
-        # Attempt installation
-        try:
-            print(f"Running: {' '.join(cmd)}")
-            subprocess.run(cmd, check=True)
-            print(f"{Colors.GREEN}Python dependencies installed successfully{Colors.END}")
-        except subprocess.CalledProcessError as e:
-            print(f"{Colors.RED}Error installing dependencies: {e}{Colors.END}")
-            print(f"\n{Colors.YELLOW}Trying alternative method...{Colors.END}")
-            
-            # Second attempt: just --user
-            try:
-                cmd2 = [sys.executable, '-m', 'pip', 'install', '--user'] + python_packages
-                subprocess.run(cmd2, check=True)
-                print(f"{Colors.GREEN}Installed with --user{Colors.END}")
-            except:
-                print(f"{Colors.RED}Installation failed{Colors.END}")
-                print(f"\nInstall manually:")
-                print(f"  pip install {' '.join(python_packages)}")
-                if system == 'linux' and distro in ['arch', 'manjaro', 'fedora']:
-                    print(f"  Or with: pip install --break-system-packages {' '.join(python_packages)}")
-    
-    return True
+    print(f"\n{Colors.YELLOW}After manual installation, run this script again.{Colors.END}")
+    return False
 
 def show_help():
     """Show usage help"""
     help_text = f"""
 {Colors.BOLD}XONITER USAGE:{Colors.END}
 
-  python xoniter.py [options]
+  python start.py [options]
 
 {Colors.BOLD}DESCRIPTION:{Colors.END}
 
@@ -232,16 +289,16 @@ def show_help():
 {Colors.BOLD}EXAMPLES:{Colors.END}
 
   Basic execution (localhost):
-    python xoniter.py
+    python start.py
 
   Expose on local network:
-    python xoniter.py --host 0.0.0.0 --port 5100
+    python start.py --host 0.0.0.0 --port 5100
 
   Secure mode (local only, no sudo):
-    python xoniter.py --host 127.0.0.1 --port 5100 --no-sudo
+    python start.py --host 127.0.0.1 --port 5100 --no-sudo
 
   Disable QR code:
-    python xoniter.py --no-qr
+    python start.py --no-qr
 
 {Colors.BOLD}WARNING:{Colors.END}
 
@@ -277,7 +334,6 @@ def create_shortcuts():
     system = get_system()
     
     if system == 'windows':
-        # Create .bat for Windows
         with open('START_XONITER.bat', 'w') as f:
             f.write("""@echo off
 title XONITER 2026 - Remote Command Executor
@@ -287,13 +343,12 @@ echo      XONITER 2026 - Remote Executor
 echo      Developed by Darian Alberto
 echo ========================================
 echo.
-python xoniter.py
+python start.py
 pause
 """)
         print(f"{Colors.GREEN}Created START_XONITER.bat - Double-click to run{Colors.END}")
     
     elif system == 'linux':
-        # Create .sh for Linux
         with open('START_XONITER.sh', 'w') as f:
             f.write("""#!/bin/bash
 echo "========================================"
@@ -301,14 +356,13 @@ echo "      XONITER 2026 - Remote Executor"
 echo "      Developed by Darian Alberto"
 echo "========================================"
 echo ""
-python3 xoniter.py
+python3 start.py
 read -p "Press Enter to exit"
 """)
         os.chmod('START_XONITER.sh', 0o755)
         print(f"{Colors.GREEN}Created START_XONITER.sh - Run with: ./START_XONITER.sh{Colors.END}")
     
     elif system == 'darwin':
-        # Create .command for Mac
         with open('START_XONITER.command', 'w') as f:
             f.write("""#!/bin/bash
 cd "$(dirname "$0")"
@@ -317,7 +371,7 @@ echo "      XONITER 2026 - Remote Executor"
 echo "      Developed by Darian Alberto"
 echo "========================================"
 echo ""
-python3 xoniter.py
+python3 start.py
 """)
         os.chmod('START_XONITER.command', 0o755)
         print(f"{Colors.GREEN}Created START_XONITER.command - Double-click to run{Colors.END}")
@@ -352,21 +406,21 @@ def main():
     print(f"{Colors.BOLD}Directory:{Colors.END} {os.path.dirname(os.path.abspath(__file__))}")
     
     # Check dependencies
-    missing = check_dependencies()
+    missing, installed = check_dependencies()
     
     if missing:
-        print(f"\n{Colors.YELLOW}Missing dependencies{Colors.END}")
+        print(f"\n{Colors.YELLOW}Missing dependencies: {', '.join(missing)}{Colors.END}")
         response = input("Install automatically? (y/n): ")
         
         if response.lower() == 'y':
-            install_dependencies(missing)
+            if not install_dependencies(missing):
+                print(f"\n{Colors.RED}Installation failed. Please install manually.{Colors.END}")
+                input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
+                return
         else:
-            print(f"\nYou can install them manually with:")
-            print("  pip install flask qrcode[pil] pillow")
-            system = get_system()
-            distro = get_linux_distro()
-            if system == 'linux' and distro in ['arch', 'manjaro', 'fedora']:
-                print("  Or with: pip install --break-system-packages flask qrcode[pil] pillow")
+            print(f"\nYou can install them manually with the commands shown above.")
+            input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
+            return
     
     # Verify that xoniter.py exists
     if not os.path.exists('xoniter.py'):
@@ -381,13 +435,15 @@ def main():
     print(f"\n{Colors.BOLD}Verifying everything works...{Colors.END}")
     if not verify_imports():
         print(f"\n{Colors.RED}Error: Cannot import required modules{Colors.END}")
-        print("The program cannot continue without these dependencies")
         response = input("\nTry to fix imports by reinstalling? (y/n): ")
         if response.lower() == 'y':
             missing = ['flask', 'qrcode[pil]', 'pillow']
-            install_dependencies(missing)
-            if not verify_imports():
-                print(f"\n{Colors.RED}Still having issues. Please install manually.{Colors.END}")
+            if install_dependencies(missing):
+                if not verify_imports():
+                    print(f"\n{Colors.RED}Still having issues. Please install manually.{Colors.END}")
+                    input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
+                    return
+            else:
                 input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
                 return
         else:
