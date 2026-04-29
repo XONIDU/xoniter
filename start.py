@@ -4,7 +4,6 @@
 """
 XONITER 2026 - Lightweight Remote Command Executor Installer
 This script runs xoniter.py and verifies dependencies with multiple fallback options
-Now includes automatic pip installation for various Linux distributions
 Developed by: Darian Alberto Camacho Salas
 #Somos XONIDU
 """
@@ -19,11 +18,12 @@ import time
 
 # Terminal colors
 class Colors:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
     RED = '\033[91m'
+    BLUE = '\033[94m'
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
     END = '\033[0m'
     BOLD = '\033[1m'
     
@@ -43,6 +43,9 @@ if not Colors.supports_color():
         if not attr.startswith('_') and attr != 'supports_color':
             setattr(Colors, attr, '')
 
+# ============================================================================
+# Detección del sistema
+# ============================================================================
 def get_system():
     return platform.system().lower()
 
@@ -53,14 +56,18 @@ def get_linux_distro():
         if os.path.exists('/etc/os-release'):
             with open('/etc/os-release', 'r') as f:
                 content = f.read().lower()
-                if 'ubuntu' in content: return 'ubuntu'
-                if 'debian' in content: return 'debian'
-                if 'fedora' in content: return 'fedora'
-                if 'centos' in content: return 'centos'
-                if 'arch' in content: return 'arch'
-                if 'manjaro' in content: return 'manjaro'
-                if 'mint' in content: return 'mint'
-                if 'opensuse' in content: return 'opensuse'
+                if 'ubuntu' in content or 'debian' in content or 'mint' in content:
+                    return 'debian-based'
+                elif 'arch' in content or 'manjaro' in content:
+                    return 'arch-based'
+                elif 'fedora' in content:
+                    return 'fedora'
+        if shutil.which('apt'):
+            return 'debian-based'
+        elif shutil.which('pacman'):
+            return 'arch-based'
+        elif shutil.which('dnf'):
+            return 'fedora'
         return 'linux-generic'
     except:
         return 'linux-generic'
@@ -75,22 +82,56 @@ def get_python_command():
         except:
             return ['python']
 
-def print_banner():
-    system = get_system()
+def get_pip_command():
+    return [sys.executable, '-m', 'pip']
+
+def get_install_flags():
+    flags = []
+    sistema = get_system()
     distro = get_linux_distro()
-    system_text = {
+    if sistema == 'linux':
+        if distro in ['arch-based', 'fedora']:
+            flags.append('--break-system-packages')
+        else:
+            flags.append('--user')
+    elif sistema == 'darwin':
+        flags.append('--user')
+    return flags
+
+def get_script_dir():
+    return os.path.dirname(os.path.abspath(__file__))
+
+def get_xoniter_path():
+    """Detecta la ruta de xoniter.py en múltiples ubicaciones"""
+    script_dir = get_script_dir()
+    rutas = [
+        os.path.join(script_dir, 'xoniter.py'),
+        '/usr/share/xoniter/xoniter.py',
+        os.path.join(os.path.expanduser("~"), '.xoniter', 'xoniter.py'),
+        os.path.join(os.getcwd(), 'xoniter.py')
+    ]
+    for r in rutas:
+        if os.path.exists(r):
+            return r
+    return None
+
+def print_banner():
+    sistema = get_system()
+    distro = get_linux_distro()
+    sistema_texto = {
         'windows': 'WINDOWS',
         'linux': f'LINUX ({distro.upper()})' if distro else 'LINUX',
         'darwin': 'MACOS'
-    }.get(system, 'UNKNOWN')
+    }.get(sistema, 'UNKNOWN')
+    
     banner = f"""
-{Colors.BLUE}{Colors.BOLD}═══════════════════════════════════════════════════════════
+{Colors.PURPLE}{Colors.BOLD}═══════════════════════════════════════════════════════════
                     XONITER 2026 v1.0                    
               Lightweight Remote Command Executor            
               Execute commands on headless systems          
               via web interface                             
                                                           
-              System detected: {system_text}            
+              System detected: {sistema_texto}            
                                                           
               Developed by: Darian Alberto            
               Camacho Salas                               
@@ -99,6 +140,46 @@ def print_banner():
     """
     print(banner)
 
+def mostrar_ayuda():
+    ayuda = f"""
+{Colors.BOLD}XONITER USAGE:{Colors.END}
+
+  python start.py [options]
+
+{Colors.BOLD}DESCRIPTION:{Colors.END}
+
+  XONITER is a lightweight tool that provides a web interface
+  to execute commands on a Linux machine from any device on
+  the same local network.
+
+{Colors.BOLD}OPTIONS:{Colors.END}
+
+  --host HOST     Host to bind to (default: 0.0.0.0)
+  --port PORT     Port to bind to (default: 5100)
+  --no-sudo       Disable sudo mode (run without privileges)
+  --no-qr         Disable QR code display
+
+{Colors.BOLD}EXAMPLES:{Colors.END}
+
+  Basic execution (localhost):
+    python start.py
+
+  Expose on local network:
+    python start.py --host 0.0.0.0 --port 5100
+
+  Secure mode (local only, no sudo):
+    python start.py --host 127.0.0.1 --port 5100 --no-sudo
+
+{Colors.BOLD}WARNING:{Colors.END}
+
+  This tool is for TRUSTED LOCAL NETWORKS ONLY.
+  Never expose it to the internet or untrusted networks.
+    """
+    print(ayuda)
+
+# ============================================================================
+# Verificación de dependencias
+# ============================================================================
 def check_python():
     try:
         cmd = get_python_command() + ['--version']
@@ -107,73 +188,59 @@ def check_python():
     except:
         return False
 
-def check_command(command):
-    return shutil.which(command) is not None
+def check_pip():
+    try:
+        cmd = get_pip_command() + ['--version']
+        subprocess.run(cmd, capture_output=True, check=True)
+        return True
+    except:
+        return False
+
+def install_pip_linux():
+    distro = get_linux_distro()
+    print(f"{Colors.YELLOW}Installing pip on Linux ({distro})...{Colors.END}")
+    if distro == 'debian-based':
+        try:
+            subprocess.run(['sudo', 'apt', 'update'], check=False)
+            subprocess.run(['sudo', 'apt', 'install', '-y', 'python3-pip'], check=True)
+            return True
+        except:
+            return False
+    elif distro == 'arch-based':
+        try:
+            subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'python-pip'], check=True)
+            return True
+        except:
+            return False
+    elif distro == 'fedora':
+        try:
+            subprocess.run(['sudo', 'dnf', 'install', '-y', 'python3-pip'], check=True)
+            return True
+        except:
+            return False
+    return False
+
+def install_pip_windows():
+    print(f"{Colors.YELLOW}Installing pip on Windows...{Colors.END}")
+    try:
+        subprocess.run([sys.executable, '-m', 'ensurepip', '--upgrade'], check=True)
+        return True
+    except:
+        return False
 
 def check_python_module(module_name):
     return importlib.util.find_spec(module_name) is not None
 
-def install_pip():
-    """Installs pip if not present, using the system package manager."""
-    system = get_system()
-    if system != 'linux':
-        # Windows/macOS: pip usually comes with Python; if not, we can't auto-install easily.
-        # We'll just show a message.
-        if not check_command('pip') and not check_command('pip3'):
-            print(f"{Colors.RED}Error: pip not found. Please install pip manually.{Colors.END}")
-            return False
-        return True
-    
-    distro = get_linux_distro()
-    print(f"{Colors.BOLD}Installing pip for {distro}...{Colors.END}")
-    
-    # Commands to install pip
-    install_cmds = []
-    if distro in ['ubuntu', 'debian', 'mint']:
-        install_cmds = [['sudo', 'apt', 'update'], ['sudo', 'apt', 'install', '-y', 'python3-pip']]
-    elif distro in ['arch', 'manjaro']:
-        install_cmds = [['sudo', 'pacman', '-S', '--noconfirm', 'python-pip']]
-    elif distro in ['fedora']:
-        install_cmds = [['sudo', 'dnf', 'install', '-y', 'python3-pip']]
-    elif distro in ['centos']:
-        install_cmds = [['sudo', 'yum', 'install', '-y', 'python3-pip']]
-    elif distro in ['opensuse']:
-        install_cmds = [['sudo', 'zypper', 'install', '-y', 'python3-pip']]
-    else:
-        # generic: try apt, pacman, dnf
-        print(f"{Colors.YELLOW}Unrecognized distribution. Trying common package managers...{Colors.END}")
-        install_cmds = [
-            ['sudo', 'apt', 'update'], ['sudo', 'apt', 'install', '-y', 'python3-pip'],
-            ['sudo', 'pacman', '-S', '--noconfirm', 'python-pip'],
-            ['sudo', 'dnf', 'install', '-y', 'python3-pip']
-        ]
-    
-    for cmd in install_cmds:
-        try:
-            print(f"Running: {' '.join(cmd)}")
-            subprocess.run(cmd, check=True, timeout=120)
-        except Exception as e:
-            print(f"{Colors.YELLOW}Command failed: {e}{Colors.END}")
-            # continue to next command
-    
-    # Verify pip is now available
-    if check_command('pip3') or check_command('pip'):
-        print(f"{Colors.GREEN}pip installed successfully.{Colors.END}")
-        return True
-    else:
-        print(f"{Colors.RED}Failed to install pip automatically. Please install pip manually.{Colors.END}")
-        return False
-
 def check_dependencies():
     print(f"\n{Colors.BOLD}Checking Python dependencies...{Colors.END}")
     dependencies = [
-        ('flask', 'flask', 'Web framework', 'flask'),
-        ('qrcode', 'qrcode[pil]', 'QR code generation', 'qrcode'),
-        ('Pillow', 'pillow', 'Image processing', 'PIL'),
+        ('flask', 'flask', 'Web framework'),
+        ('qrcode', 'qrcode', 'QR code generation'),
+        ('PIL', 'pillow', 'Image processing'),
     ]
     missing = []
-    for module, package, desc, import_name in dependencies:
-        if check_python_module(import_name):
+    for module, package, desc in dependencies:
+        if check_python_module(module if module != 'PIL' else 'PIL'):
             print(f"{Colors.GREEN}  - {module}: OK{Colors.END}")
         else:
             print(f"{Colors.YELLOW}  - {module}: MISSING{Colors.END}")
@@ -191,7 +258,6 @@ def install_with_pip(packages):
     if system == 'linux':
         strategies.append([sys.executable, '-m', 'pip', 'install', '--break-system-packages'])
         strategies.append([sys.executable, '-m', 'pip', 'install', '--user', '--break-system-packages'])
-    strategies.append([sys.executable, '-m', 'pip', 'install', '--ignore-installed'])
     if check_command('pip3'):
         strategies.append(['pip3', 'install'])
         if system == 'linux':
@@ -199,8 +265,6 @@ def install_with_pip(packages):
             strategies.append(['pip3', 'install', '--user'])
     if check_command('pip'):
         strategies.append(['pip', 'install'])
-        if system == 'linux':
-            strategies.append(['pip', 'install', '--break-system-packages'])
     
     for idx, strategy in enumerate(strategies, 1):
         cmd = strategy + packages
@@ -212,8 +276,6 @@ def install_with_pip(packages):
                 return True
             else:
                 print(f"{Colors.YELLOW}  Failed (code {result.returncode}){Colors.END}")
-                if result.stderr:
-                    print(f"    Error: {result.stderr[:200]}")
         except subprocess.TimeoutExpired:
             print(f"{Colors.YELLOW}  Timeout{Colors.END}")
         except Exception as e:
@@ -224,27 +286,14 @@ def install_dependencies(missing):
     if not missing:
         return True
     print(f"\n{Colors.BOLD}Installing missing dependencies...{Colors.END}")
-    print(f"Packages: {', '.join(missing)}")
     if install_with_pip(missing):
         print(f"{Colors.GREEN}All dependencies installed!{Colors.END}")
         return True
     print(f"{Colors.RED}Automatic installation failed.{Colors.END}")
-    print(f"{Colors.YELLOW}Manual instructions:{Colors.END}")
-    system = get_system()
-    distro = get_linux_distro()
-    if system == 'linux':
-        if distro in ['arch', 'manjaro']:
-            print(f"  sudo pacman -S python-pip")
-            print(f"  pip install --break-system-packages {' '.join(missing)}")
-        elif distro in ['ubuntu', 'debian', 'mint']:
-            print(f"  sudo apt install python3-pip -y")
-            print(f"  pip install --user {' '.join(missing)}")
-        else:
-            print(f"  pip install --break-system-packages {' '.join(missing)}")
-            print(f"  or pip install --user {' '.join(missing)}")
-    else:
-        print(f"  pip install {' '.join(missing)}")
     return False
+
+def check_command(command):
+    return shutil.which(command) is not None
 
 def verify_imports():
     print(f"\n{Colors.BOLD}Verifying imports...{Colors.END}")
@@ -268,33 +317,36 @@ title XONITER 2026 - Remote Command Executor
 color 1F
 echo ========================================
 echo      XONITER 2026 - Remote Executor
-echo      Developed by Darian Alberto
+echo      Developed by Darian Alberto Camacho Salas
+echo      #Somos XONIDU
 echo ========================================
 echo.
 python start.py
 pause
 """)
-        print(f"{Colors.GREEN}Created START_XONITER.bat{Colors.END}")
+        print(f"{Colors.GREEN}Created START_XONITER.bat - Run as Administrator if needed{Colors.END}")
     elif system == 'linux':
         with open('START_XONITER.sh', 'w') as f:
             f.write("""#!/bin/bash
 echo "========================================"
 echo "      XONITER 2026 - Remote Executor"
-echo "      Developed by Darian Alberto"
+echo "      Developed by Darian Alberto Camacho Salas"
+echo "      #Somos XONIDU"
 echo "========================================"
 echo ""
 python3 start.py
 read -p "Press Enter to exit"
 """)
         os.chmod('START_XONITER.sh', 0o755)
-        print(f"{Colors.GREEN}Created START_XONITER.sh{Colors.END}")
+        print(f"{Colors.GREEN}Created START_XONITER.sh - Run with: ./START_XONITER.sh{Colors.END}")
     elif system == 'darwin':
         with open('START_XONITER.command', 'w') as f:
             f.write("""#!/bin/bash
 cd "$(dirname "$0")"
 echo "========================================"
 echo "      XONITER 2026 - Remote Executor"
-echo "      Developed by Darian Alberto"
+echo "      Developed by Darian Alberto Camacho Salas"
+echo "      #Somos XONIDU"
 echo "========================================"
 echo ""
 python3 start.py
@@ -302,34 +354,35 @@ python3 start.py
         os.chmod('START_XONITER.command', 0o755)
         print(f"{Colors.GREEN}Created START_XONITER.command{Colors.END}")
 
+# ============================================================================
+# Función principal
+# ============================================================================
 def main():
     if get_system() == 'windows':
         os.system('cls')
     else:
         os.system('clear')
+    
     print_banner()
     
     if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help', '/?']:
-        show_help()
-        input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
+        mostrar_ayuda()
+        if get_system() != 'windows':
+            input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
         return
     
     if not check_python():
-        print(f"\n{Colors.RED}Error: Python not installed{Colors.END}")
-        print("Install from https://www.python.org/downloads/")
-        input(f"\n{Colors.YELLOW}Press Enter...{Colors.END}")
-        return
+        print(f"\n{Colors.RED}Error: Python is not installed{Colors.END}")
+        sys.exit(1)
     
     python_version = subprocess.run(get_python_command() + ['--version'], capture_output=True, text=True).stdout.strip()
     print(f"{Colors.BOLD}Python:{Colors.END} {python_version}")
-    print(f"{Colors.BOLD}Directory:{Colors.END} {os.path.dirname(os.path.abspath(__file__))}")
     
-    # Ensure pip is installed (Linux only)
-    if get_system() == 'linux' and not (check_command('pip') or check_command('pip3')):
-        print(f"\n{Colors.YELLOW}pip not found. Attempting to install...{Colors.END}")
-        if not install_pip():
-            input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
-            return
+    if not check_pip() and get_system() == 'linux':
+        print(f"\n{Colors.YELLOW}pip not found. Installing...{Colors.END}")
+        if not install_pip_linux():
+            print(f"{Colors.RED}Could not install pip automatically.{Colors.END}")
+            sys.exit(1)
     
     missing = check_dependencies()
     if missing:
@@ -337,58 +390,30 @@ def main():
         resp = input("Install automatically? (y/n): ")
         if resp.lower() == 'y':
             if not install_dependencies(missing):
-                input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
-                return
-        else:
-            print("\nPlease install manually and re-run.")
-            input(f"\n{Colors.YELLOW}Press Enter...{Colors.END}")
-            return
+                print(f"{Colors.YELLOW}Manual installation required.{Colors.END}")
+                sys.exit(1)
     
-    if not os.path.exists('xoniter.py'):
+    xoniter_path = get_xoniter_path()
+    if not xoniter_path:
         print(f"\n{Colors.RED}Error: xoniter.py not found{Colors.END}")
-        input(f"\n{Colors.YELLOW}Press Enter...{Colors.END}")
-        return
-    
-    print(f"\n{Colors.BOLD}Verifying imports...{Colors.END}")
-    if not verify_imports():
-        print(f"{Colors.RED}Import error. Reinstalling...{Colors.END}")
-        if not install_dependencies(['flask', 'qrcode', 'pillow']):
-            input(f"\n{Colors.YELLOW}Press Enter...{Colors.END}")
-            return
+        sys.exit(1)
     
     print(f"\n{Colors.BOLD}Starting XONITER...{Colors.END}")
-    print(f"{Colors.BOLD}Press Ctrl+C to stop{Colors.END}")
-    print("-" * 60)
+    print(f"{Colors.CYAN}To exit: Ctrl+C{Colors.END}")
+    print("-" * 50)
+    
     try:
         python_cmd = get_python_command()
-        cmd = python_cmd + ['xoniter.py'] + sys.argv[1:]
-        print(f"Running: {' '.join(cmd)}")
-        result = subprocess.run(cmd)
-        if result.returncode != 0:
-            print(f"\n{Colors.RED}Error: xoniter.py exited with code {result.returncode}{Colors.END}")
+        cmd = python_cmd + [xoniter_path] + sys.argv[1:]
+        subprocess.run(cmd)
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}Stopped by user{Colors.END}")
     except Exception as e:
         print(f"\n{Colors.RED}Error: {e}{Colors.END}")
     
-    print(f"\n{Colors.BLUE}Thank you for using XONITER 2026{Colors.END}")
-    print(f"{Colors.BLUE}#Somos XONIDU{Colors.END}")
-    if get_system() != 'windows':
-        input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
-
-def show_help():
-    help_text = f"""
-{Colors.BOLD}XONITER USAGE:{Colors.END}
-  python start.py [options]
-{Colors.BOLD}OPTIONS:{Colors.END}
-  --host HOST     Host to bind to (default: 0.0.0.0)
-  --port PORT     Port to bind to (default: 5100)
-  --no-sudo       Disable sudo mode
-  --no-qr         Disable QR code
-{Colors.BOLD}WARNING:{Colors.END}
-  For trusted local networks only. No authentication.
-"""
-    print(help_text)
+    print(f"\n{Colors.GREEN}Thank you for using XONITER 2026{Colors.END}")
+    print(f"{Colors.GREEN}Developed by Darian Alberto Camacho Salas{Colors.END}")
+    print(f"{Colors.GREEN}#Somos XONIDU{Colors.END}")
 
 if __name__ == '__main__':
     try:
@@ -398,4 +423,3 @@ if __name__ == '__main__':
         print(f"\n{Colors.YELLOW}Exiting...{Colors.END}")
     except Exception as e:
         print(f"\n{Colors.RED}Unexpected error: {e}{Colors.END}")
-        input(f"\n{Colors.YELLOW}Press Enter...{Colors.END}")
