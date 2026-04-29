@@ -1,4 +1,4 @@
-	#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -49,8 +49,8 @@ def load_config():
     global config
     config_path = get_config_path()
     default_config = {
-        "allowed_commands": ["ls", "df", "free", "uname", "ip", "cat", "tail", "head", "grep", "systemctl", "ping", "ss", "ps", "top"],
-        "blocked_patterns": [r'\brm\b', r'/bin/rm', r';\s*rm', r'&&\s*rm', r'\|\s*rm', r'\bdd\b', r'\bmkfs\b'],
+        "allowed_commands": [],
+        "blocked_patterns": [],
         "ask_for_confirmation": True,
         "confirmation_timeout": 30,
         "require_auth": False,
@@ -75,17 +75,11 @@ def load_config():
         config = default_config
 
 def is_command_allowed(command):
-    """Check if command is in allowed list"""
-    if not command or not command.strip():
-        return False
-    first_word = command.strip().split()[0]
-    return first_word in config.get("allowed_commands", [])
+    """All commands are allowed"""
+    return True
 
 def is_command_blocked(command):
-    """Check if command contains blocked patterns"""
-    for pattern in config.get("blocked_patterns", []):
-        if re.search(pattern, command):
-            return True
+    """No commands are blocked"""
     return False
 
 def ask_confirmation(command):
@@ -135,13 +129,16 @@ def run_command(command, timeout=None):
     if not command or not command.strip():
         return "", "Empty command", -1, None
     
+    # No restrictions - all commands allowed
     if not is_command_allowed(command):
-        allowed = ', '.join(config.get("allowed_commands", []))
-        return "", f"Command not allowed. Allowed: {allowed}", -1, None
+        # This should never happen now
+        return "", "Command not allowed", -1, None
     
     if is_command_blocked(command):
-        return "", "Command blocked for security reasons (matches blocked pattern)", -1, None
+        # This should never happen now
+        return "", "Command blocked for security reasons", -1, None
     
+    # Always ask for confirmation if enabled
     if config.get("ask_for_confirmation", True):
         if not ask_confirmation(command):
             return "", "Command cancelled by user", -1, None
@@ -266,14 +263,14 @@ class Colors:
 
 def print_startup_banner(host, port, full_url, no_qr):
     print(f"\n{Colors.PURPLE}{Colors.BOLD}═══════════════════════════════════════════════════════════{Colors.END}")
-    print(f"{Colors.BLUE}{Colors.BOLD}                    XONITER 2026 v1.0{Colors.END}")
+    print(f"{Colors.BLUE}{Colors.BOLD}                    XONITER 2026 v1.0.1{Colors.END}")
     print(f"{Colors.BLUE}{Colors.BOLD}              Lightweight Remote Command Executor{Colors.END}")
     print(f"{Colors.PURPLE}{Colors.BOLD}═══════════════════════════════════════════════════════════{Colors.END}")
     print(f"{Colors.GREEN}✅ Server started at: {full_url}{Colors.END}")
     print(f"{Colors.GREEN}✅ Host: {host} | Port: {port}{Colors.END}")
-    print(f"{Colors.YELLOW}⚠️  Security: Allowed commands: {', '.join(config.get('allowed_commands', [])[:6])}...{Colors.END}")
+    print(f"{Colors.YELLOW}⚠️  No command restrictions - ALL commands are allowed{Colors.END}")
     if config.get("ask_for_confirmation"):
-        print(f"{Colors.YELLOW}🔐 Confirmation mode: ENABLED (asks before executing){Colors.END}")
+        print(f"{Colors.YELLOW}🔐 Confirmation mode: ENABLED (asks before each command){Colors.END}")
     print(f"{Colors.PURPLE}{Colors.BOLD}═══════════════════════════════════════════════════════════{Colors.END}")
     print(f"{Colors.CYAN}Press Ctrl+C to stop{Colors.END}")
     print("")
