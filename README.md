@@ -2,8 +2,6 @@
 
 XONITER provides a minimal web interface to send and execute commands on a Linux machine from another device on the same local network. It is designed to streamline command input on systems without a graphical environment (pure terminal) from a mobile phone or laptop on the LAN.
 
-![XONITER Web Interface](https://raw.githubusercontent.com/XONIDU/xoniter/main/templates/screenshot.png)
-
 ## 🎯 Goal
 
 Make it easy to run Linux commands remotely when:
