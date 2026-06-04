@@ -2,6 +2,8 @@
 
 XONITER provides a minimal web interface to send and execute commands on a Linux machine from another device on the same local network. It is designed to streamline command input on systems without a graphical environment (pure terminal) from a mobile phone or laptop on the LAN.
 
+![XONITER Web Interface](https://raw.githubusercontent.com/XONIDU/xoniter/main/templates/screenshot.png)
+
 ## 🎯 Goal
 
 Make it easy to run Linux commands remotely when:
@@ -21,7 +23,7 @@ Make it easy to run Linux commands remotely when:
 
 - **Operating System**: Linux (any distribution), Windows, or macOS
 - **Python**: Version 3.6 or higher
-- **Dependencies**: Flask, qrcode, Pillow (automatically installed)
+- **Dependencies**: Flask, qrcode, Pillow (automatically installed by start.py)
 
 ## 🚀 Quick Start
 
@@ -42,7 +44,7 @@ python start.py
 The installer will:
 - Check your Python version
 - Detect your operating system and Linux distribution
-- Install all required dependencies automatically
+- Install all required dependencies automatically (with multiple fallback strategies)
 - Create platform-specific shortcuts
 - Launch the main XONITER application
 
@@ -127,13 +129,14 @@ Use the timeout field to limit how long a command can run (in seconds). This pre
 | **Cross-platform** | Works on Linux, Windows, and macOS |
 | **Automatic IP detection** | Detects and displays local IP |
 | **Platform shortcuts** | Creates .bat (Windows), .sh (Linux), .command (macOS) |
+| **Multi-distro support** | Works on Debian, Ubuntu, Arch, Fedora, openSUSE, Alpine |
 
 ## 📁 Project Structure
 
 ```
 xoniter/
 ├── xoniter.py           # Main application (Python/Flask)
-├── start.py             # Installer/launcher script
+├── start.py             # Installer/launcher script (multi-strategy)
 ├── templates/
 │   └── index.html       # Web interface template
 ├── README.md            # This file
@@ -144,16 +147,19 @@ xoniter/
 
 ### Linux
 - **Arch/Manjaro/Fedora**: The installer automatically uses `--break-system-packages`
-- **Ubuntu/Debian/Mint**: Uses `--user` flag for safe installation
+- **Ubuntu/Debian/Mint/PopOS**: Uses `--user` flag for safe installation
+- **openSUSE/Alpine**: Detected and handled appropriately
 - All distributions: Creates `START_XONITER.sh` launcher
 
 ### Windows
 - Creates `START_XONITER.bat` for easy double-click execution
 - No special package manager flags needed
+- Uses `ensurepip` or downloads `get-pip.py` if needed
 
 ### macOS
 - Creates `START_XONITER.command` launcher
 - Uses `--user` flag for installations
+- Can use Homebrew if needed
 
 ## 🔧 Example Commands to Try
 
@@ -223,20 +229,25 @@ For safer deployment:
 ### "Command not found" for pip/pip3
 
 ```bash
-# Ubuntu/Debian
+# Ubuntu/Debian/Mint/PopOS
 sudo apt install python3-pip
 
-# Arch/Manjaro
+# Arch/Manjaro/EndeavourOS
 sudo pacman -S python-pip
 
 # Fedora
 sudo dnf install python3-pip
+
+# openSUSE
+sudo zypper install python3-pip
+
+# Alpine
+sudo apk add py3-pip
 ```
 
 ### Import errors
 
 Run the installer again:
-
 ```bash
 python start.py
 ```
@@ -244,7 +255,6 @@ python start.py
 ### Permission denied for binding to port
 
 Use a port above 1024 (default is 5100) or run with sudo:
-
 ```bash
 sudo python xoniter.py --host 0.0.0.0 --port 80
 ```
@@ -272,15 +282,5 @@ Contact the XONIDU team through:
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- Flask framework for the web interface
-- Python community for the amazing libraries
-- Arch Linux community for AUR support
-- UNAM FESC for the educational environment
-
----
-
-**#Somos XONIDU
