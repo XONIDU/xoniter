@@ -4,6 +4,7 @@
 """
 XONITER 2026 - Lightweight Remote Command Executor Installer
 This script runs xoniter.py and verifies dependencies with multiple fallback options
+Supports: Linux (all distros), Windows, macOS
 Developed by: Darian Alberto Camacho Salas
 #Somos XONIDU
 """
@@ -44,7 +45,7 @@ if not Colors.supports_color():
             setattr(Colors, attr, '')
 
 # ============================================================================
-# Detección del sistema
+# System detection
 # ============================================================================
 def get_system():
     return platform.system().lower()
@@ -56,18 +57,27 @@ def get_linux_distro():
         if os.path.exists('/etc/os-release'):
             with open('/etc/os-release', 'r') as f:
                 content = f.read().lower()
-                if 'ubuntu' in content or 'debian' in content or 'mint' in content:
+                if 'ubuntu' in content or 'debian' in content or 'mint' in content or 'pop' in content:
                     return 'debian-based'
-                elif 'arch' in content or 'manjaro' in content:
+                elif 'arch' in content or 'manjaro' in content or 'endeavouros' in content:
                     return 'arch-based'
-                elif 'fedora' in content:
-                    return 'fedora'
+                elif 'fedora' in content or 'rhel' in content or 'centos' in content:
+                    return 'fedora-based'
+                elif 'opensuse' in content or 'suse' in content:
+                    return 'suse-based'
+                elif 'alpine' in content:
+                    return 'alpine'
+        # Fallback: check package managers
         if shutil.which('apt'):
             return 'debian-based'
         elif shutil.which('pacman'):
             return 'arch-based'
         elif shutil.which('dnf'):
-            return 'fedora'
+            return 'fedora-based'
+        elif shutil.which('zypper'):
+            return 'suse-based'
+        elif shutil.which('apk'):
+            return 'alpine'
         return 'linux-generic'
     except:
         return 'linux-generic'
@@ -76,39 +86,61 @@ def get_python_command():
     if get_system() == 'windows':
         return ['python']
     else:
-        try:
-            subprocess.run(['python3', '--version'], capture_output=True, check=True)
-            return ['python3']
-        except:
-            return ['python']
+        for cmd in ['python3', 'python']:
+            try:
+                subprocess.run([cmd, '--version'], capture_output=True, check=True)
+                return [cmd]
+            except:
+                continue
+        return ['python3']
 
-def get_pip_command():
-    return [sys.executable, '-m', 'pip']
+def get_pip_commands():
+    """Returns list of possible pip commands to try"""
+    system = get_system()
+    python_cmd = get_python_command()[0]
+    
+    commands = [
+        [sys.executable, '-m', 'pip'],
+        [python_cmd, '-m', 'pip'],
+    ]
+    
+    if system != 'windows':
+        commands.append(['pip3'])
+        commands.append(['pip'])
+    
+    return commands
 
 def get_install_flags():
-    flags = []
-    sistema = get_system()
+    """Returns list of flag combinations to try"""
+    system = get_system()
     distro = get_linux_distro()
-    if sistema == 'linux':
-        if distro in ['arch-based', 'fedora']:
-            flags.append('--break-system-packages')
+    flags_list = [[]]  # Start with no flags
+    
+    if system == 'linux':
+        if distro in ['arch-based', 'fedora-based']:
+            flags_list.append(['--break-system-packages'])
+            flags_list.append(['--user', '--break-system-packages'])
+            flags_list.append(['--user'])
         else:
-            flags.append('--user')
-    elif sistema == 'darwin':
-        flags.append('--user')
-    return flags
+            flags_list.append(['--user'])
+            flags_list.append(['--break-system-packages'])
+            flags_list.append(['--user', '--break-system-packages'])
+    elif system == 'darwin':
+        flags_list.append(['--user'])
+    
+    return flags_list
 
 def get_script_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 def get_xoniter_path():
-    """Detecta la ruta de xoniter.py en múltiples ubicaciones"""
+    """Detects xoniter.py in multiple locations"""
     script_dir = get_script_dir()
     rutas = [
         os.path.join(script_dir, 'xoniter.py'),
+        os.path.join(os.getcwd(), 'xoniter.py'),
         '/usr/share/xoniter/xoniter.py',
         os.path.join(os.path.expanduser("~"), '.xoniter', 'xoniter.py'),
-        os.path.join(os.getcwd(), 'xoniter.py')
     ]
     for r in rutas:
         if os.path.exists(r):
@@ -116,22 +148,22 @@ def get_xoniter_path():
     return None
 
 def print_banner():
-    sistema = get_system()
+    system = get_system()
     distro = get_linux_distro()
-    sistema_texto = {
+    system_text = {
         'windows': 'WINDOWS',
         'linux': f'LINUX ({distro.upper()})' if distro else 'LINUX',
         'darwin': 'MACOS'
-    }.get(sistema, 'UNKNOWN')
+    }.get(system, 'UNKNOWN')
     
     banner = f"""
 {Colors.PURPLE}{Colors.BOLD}═══════════════════════════════════════════════════════════
-                    XONITER 2026 v1.0                    
+                    XONITER 2026 v1.0.1                    
               Lightweight Remote Command Executor            
               Execute commands on headless systems          
               via web interface                             
                                                           
-              System detected: {sistema_texto}            
+              System detected: {system_text}            
                                                           
               Developed by: Darian Alberto            
               Camacho Salas                               
@@ -178,7 +210,7 @@ def mostrar_ayuda():
     print(ayuda)
 
 # ============================================================================
-# Verificación de dependencias
+# Python and pip verification
 # ============================================================================
 def check_python():
     try:
@@ -189,45 +221,116 @@ def check_python():
         return False
 
 def check_pip():
-    try:
-        cmd = get_pip_command() + ['--version']
-        subprocess.run(cmd, capture_output=True, check=True)
-        return True
-    except:
-        return False
+    """Check if pip is available using multiple methods"""
+    for pip_cmd in get_pip_commands():
+        try:
+            subprocess.run(pip_cmd + ['--version'], capture_output=True, check=True)
+            return True, pip_cmd
+        except:
+            continue
+    return False, None
 
 def install_pip_linux():
+    """Install pip on various Linux distributions"""
     distro = get_linux_distro()
     print(f"{Colors.YELLOW}Installing pip on Linux ({distro})...{Colors.END}")
+    
+    install_commands = []
+    
     if distro == 'debian-based':
-        try:
-            subprocess.run(['sudo', 'apt', 'update'], check=False)
-            subprocess.run(['sudo', 'apt', 'install', '-y', 'python3-pip'], check=True)
-            return True
-        except:
-            return False
+        install_commands = [
+            ['sudo', 'apt', 'update'],
+            ['sudo', 'apt', 'install', '-y', 'python3-pip'],
+            ['sudo', 'apt', 'install', '-y', 'python3-pip', '--fix-missing']
+        ]
     elif distro == 'arch-based':
+        install_commands = [
+            ['sudo', 'pacman', '-S', '--noconfirm', 'python-pip'],
+            ['sudo', 'pacman', '-S', '--noconfirm', 'python-pip', '--overwrite', '*']
+        ]
+    elif distro == 'fedora-based':
+        install_commands = [
+            ['sudo', 'dnf', 'install', '-y', 'python3-pip'],
+            ['sudo', 'dnf', 'install', '-y', 'python3-pip', '--allowerasing']
+        ]
+    elif distro == 'suse-based':
+        install_commands = [
+            ['sudo', 'zypper', 'install', '-y', 'python3-pip'],
+            ['sudo', 'zypper', 'install', '-y', 'python3-pip', '--force']
+        ]
+    elif distro == 'alpine':
+        install_commands = [
+            ['sudo', 'apk', 'add', 'py3-pip'],
+            ['sudo', 'apk', 'add', 'python3', 'py3-pip']
+        ]
+    else:
+        # Generic: try multiple package managers
+        install_commands = [
+            ['sudo', 'apt', 'install', '-y', 'python3-pip'],
+            ['sudo', 'pacman', '-S', '--noconfirm', 'python-pip'],
+            ['sudo', 'dnf', 'install', '-y', 'python3-pip'],
+            ['sudo', 'zypper', 'install', '-y', 'python3-pip'],
+        ]
+    
+    for cmd in install_commands:
         try:
-            subprocess.run(['sudo', 'pacman', '-S', '--noconfirm', 'python-pip'], check=True)
+            print(f"  Running: {' '.join(cmd)}")
+            subprocess.run(cmd, check=True, timeout=120)
+            print(f"{Colors.GREEN}  Success!{Colors.END}")
             return True
         except:
-            return False
-    elif distro == 'fedora':
-        try:
-            subprocess.run(['sudo', 'dnf', 'install', '-y', 'python3-pip'], check=True)
-            return True
-        except:
-            return False
+            continue
+    
     return False
 
 def install_pip_windows():
+    """Install pip on Windows using ensurepip"""
     print(f"{Colors.YELLOW}Installing pip on Windows...{Colors.END}")
     try:
         subprocess.run([sys.executable, '-m', 'ensurepip', '--upgrade'], check=True)
+        print(f"{Colors.GREEN}  Success!{Colors.END}")
+        return True
+    except:
+        pass
+    
+    # Alternative: download get-pip.py
+    try:
+        import urllib.request
+        print(f"{Colors.YELLOW}  Downloading get-pip.py...{Colors.END}")
+        urllib.request.urlretrieve('https://bootstrap.pypa.io/get-pip.py', 'get-pip.py')
+        subprocess.run([sys.executable, 'get-pip.py'], check=True)
+        os.remove('get-pip.py')
+        print(f"{Colors.GREEN}  Success!{Colors.END}")
         return True
     except:
         return False
 
+def install_pip_macos():
+    """Install pip on macOS"""
+    print(f"{Colors.YELLOW}Installing pip on macOS...{Colors.END}")
+    
+    # Try with ensurepip first
+    try:
+        subprocess.run([sys.executable, '-m', 'ensurepip', '--upgrade'], check=True)
+        print(f"{Colors.GREEN}  Success!{Colors.END}")
+        return True
+    except:
+        pass
+    
+    # Try with brew
+    if shutil.which('brew'):
+        try:
+            subprocess.run(['brew', 'install', 'python3'], check=True)
+            print(f"{Colors.GREEN}  Success!{Colors.END}")
+            return True
+        except:
+            pass
+    
+    return False
+
+# ============================================================================
+# Dependency management
+# ============================================================================
 def check_python_module(module_name):
     return importlib.util.find_spec(module_name) is not None
 
@@ -248,52 +351,75 @@ def check_dependencies():
     return missing
 
 def install_with_pip(packages):
+    """Try multiple pip commands with multiple flag combinations"""
     system = get_system()
-    distro = get_linux_distro()
     
-    strategies = []
-    strategies.append([sys.executable, '-m', 'pip', 'install'])
-    if system != 'windows':
-        strategies.append([sys.executable, '-m', 'pip', 'install', '--user'])
-    if system == 'linux':
-        strategies.append([sys.executable, '-m', 'pip', 'install', '--break-system-packages'])
-        strategies.append([sys.executable, '-m', 'pip', 'install', '--user', '--break-system-packages'])
-    if check_command('pip3'):
-        strategies.append(['pip3', 'install'])
-        if system == 'linux':
-            strategies.append(['pip3', 'install', '--break-system-packages'])
-            strategies.append(['pip3', 'install', '--user'])
-    if check_command('pip'):
-        strategies.append(['pip', 'install'])
+    # Get all possible pip commands
+    pip_commands = get_pip_commands()
+    flag_combinations = get_install_flags()
     
-    for idx, strategy in enumerate(strategies, 1):
-        cmd = strategy + packages
-        print(f"\n  Attempt {idx}: {' '.join(cmd)}")
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-            if result.returncode == 0:
-                print(f"{Colors.GREEN}  Success!{Colors.END}")
-                return True
-            else:
-                print(f"{Colors.YELLOW}  Failed (code {result.returncode}){Colors.END}")
-        except subprocess.TimeoutExpired:
-            print(f"{Colors.YELLOW}  Timeout{Colors.END}")
-        except Exception as e:
-            print(f"{Colors.YELLOW}  Error: {str(e)[:100]}{Colors.END}")
+    attempt = 1
+    for pip_cmd in pip_commands:
+        for flags in flag_combinations:
+            cmd = pip_cmd + ['install'] + flags + packages
+            print(f"\n  Attempt {attempt}: {' '.join(cmd)}")
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                if result.returncode == 0:
+                    print(f"{Colors.GREEN}  Success!{Colors.END}")
+                    return True
+                else:
+                    print(f"{Colors.YELLOW}  Failed (code {result.returncode}){Colors.END}")
+                    if result.stderr:
+                        err_line = result.stderr.split('\n')[0][:150]
+                        print(f"    Error: {err_line}")
+            except subprocess.TimeoutExpired:
+                print(f"{Colors.YELLOW}  Timeout{Colors.END}")
+            except Exception as e:
+                print(f"{Colors.YELLOW}  Error: {str(e)[:100]}{Colors.END}")
+            attempt += 1
+    
     return False
 
 def install_dependencies(missing):
     if not missing:
         return True
+    
     print(f"\n{Colors.BOLD}Installing missing dependencies...{Colors.END}")
+    print(f"Packages to install: {', '.join(missing)}")
+    
     if install_with_pip(missing):
-        print(f"{Colors.GREEN}All dependencies installed!{Colors.END}")
+        print(f"\n{Colors.GREEN}All dependencies installed successfully!{Colors.END}")
         return True
-    print(f"{Colors.RED}Automatic installation failed.{Colors.END}")
+    
+    print(f"\n{Colors.RED}Automatic installation failed.{Colors.END}")
+    print(f"\n{Colors.YELLOW}Please install dependencies manually:{Colors.END}")
+    
+    system = get_system()
+    distro = get_linux_distro()
+    packages_str = ' '.join(missing)
+    
+    if system == 'linux':
+        if distro == 'arch-based':
+            print(f"\n  sudo pacman -S python-pip")
+            print(f"  pip install --break-system-packages {packages_str}")
+        elif distro == 'debian-based':
+            print(f"\n  sudo apt update")
+            print(f"  sudo apt install python3-pip -y")
+            print(f"  pip install --user {packages_str}")
+        elif distro == 'fedora-based':
+            print(f"\n  sudo dnf install python3-pip")
+            print(f"  pip install --break-system-packages {packages_str}")
+        else:
+            print(f"\n  pip install --user {packages_str}")
+            print(f"  pip install --break-system-packages {packages_str}")
+    elif system == 'darwin':
+        print(f"\n  brew install python3")
+        print(f"  pip3 install --user {packages_str}")
+    elif system == 'windows':
+        print(f"\n  python -m pip install {packages_str}")
+    
     return False
-
-def check_command(command):
-    return shutil.which(command) is not None
 
 def verify_imports():
     print(f"\n{Colors.BOLD}Verifying imports...{Colors.END}")
@@ -308,6 +434,12 @@ def verify_imports():
             all_ok = False
     return all_ok
 
+def check_command(command):
+    return shutil.which(command) is not None
+
+# ============================================================================
+# Shortcuts creation
+# ============================================================================
 def create_shortcuts():
     system = get_system()
     if system == 'windows':
@@ -355,7 +487,7 @@ python3 start.py
         print(f"{Colors.GREEN}Created START_XONITER.command{Colors.END}")
 
 # ============================================================================
-# Función principal
+# Main function
 # ============================================================================
 def main():
     if get_system() == 'windows':
@@ -371,31 +503,70 @@ def main():
             input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
         return
     
+    # Check Python
     if not check_python():
         print(f"\n{Colors.RED}Error: Python is not installed{Colors.END}")
+        print("Install Python from: https://www.python.org/downloads/")
+        if get_system() != 'windows':
+            input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
         sys.exit(1)
     
     python_version = subprocess.run(get_python_command() + ['--version'], capture_output=True, text=True).stdout.strip()
     print(f"{Colors.BOLD}Python:{Colors.END} {python_version}")
     
-    if not check_pip() and get_system() == 'linux':
+    # Check and install pip if needed
+    pip_ok, pip_cmd = check_pip()
+    if not pip_ok:
         print(f"\n{Colors.YELLOW}pip not found. Installing...{Colors.END}")
-        if not install_pip_linux():
+        system = get_system()
+        success = False
+        if system == 'linux':
+            success = install_pip_linux()
+        elif system == 'windows':
+            success = install_pip_windows()
+        elif system == 'darwin':
+            success = install_pip_macos()
+        
+        if not success:
             print(f"{Colors.RED}Could not install pip automatically.{Colors.END}")
+            print(f"{Colors.YELLOW}Please install pip manually and re-run.{Colors.END}")
+            if get_system() != 'windows':
+                input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
             sys.exit(1)
+        else:
+            print(f"{Colors.GREEN}pip installed successfully!{Colors.END}")
     
+    # Check dependencies
     missing = check_dependencies()
     if missing:
         print(f"\n{Colors.YELLOW}Missing dependencies: {', '.join(missing)}{Colors.END}")
         resp = input("Install automatically? (y/n): ")
         if resp.lower() == 'y':
             if not install_dependencies(missing):
-                print(f"{Colors.YELLOW}Manual installation required.{Colors.END}")
+                print(f"{Colors.RED}Installation failed.{Colors.END}")
+                if get_system() != 'windows':
+                    input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
                 sys.exit(1)
+        else:
+            print(f"{Colors.YELLOW}Please install manually and re-run.{Colors.END}")
+            if get_system() != 'windows':
+                input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
+            sys.exit(1)
     
+    # Verify imports work
+    if not verify_imports():
+        print(f"\n{Colors.RED}Error: Cannot import required modules{Colors.END}")
+        print(f"{Colors.YELLOW}Please check your installation.{Colors.END}")
+        if get_system() != 'windows':
+            input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
+        sys.exit(1)
+    
+    # Find and run xoniter.py
     xoniter_path = get_xoniter_path()
     if not xoniter_path:
         print(f"\n{Colors.RED}Error: xoniter.py not found{Colors.END}")
+        if get_system() != 'windows':
+            input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
         sys.exit(1)
     
     print(f"\n{Colors.BOLD}Starting XONITER...{Colors.END}")
@@ -414,6 +585,9 @@ def main():
     print(f"\n{Colors.GREEN}Thank you for using XONITER 2026{Colors.END}")
     print(f"{Colors.GREEN}Developed by Darian Alberto Camacho Salas{Colors.END}")
     print(f"{Colors.GREEN}#Somos XONIDU{Colors.END}")
+    
+    if get_system() != 'windows':
+        input(f"\n{Colors.YELLOW}Press Enter to exit...{Colors.END}")
 
 if __name__ == '__main__':
     try:
