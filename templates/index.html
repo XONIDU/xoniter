@@ -1,78 +1,307 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>XONITER - Remote Command Executor</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 18px; background:#f7f7f9; color:#222; }
-    .container { max-width:900px; margin:0 auto; background:#fff; padding:18px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
-    textarea { width:100%; height:160px; padding:10px; font-family: monospace; font-size:14px; }
-    pre { background:#0b0b0b; color:#e6e6e6; padding:12px; border-radius:6px; overflow:auto; }
-    input[type=text], input[type=number], button { padding:10px; margin-top:8px; }
-    .warn { background:#fff3cd; padding:10px; border-radius:6px; color:#856404; }
-    .info { background:#d1ecf1; padding:10px; border-radius:6px; color:#0c5460; }
-    .success { background:#d4edda; padding:10px; border-radius:6px; color:#155724; }
-    .meta { color:#555; font-size:0.9rem; }
-    .btn { display:inline-block; padding:10px 20px; background:#007bff; color:white; border:none; border-radius:5px; cursor:pointer; text-decoration:none; }
-    .btn:hover { background:#0056b3; }
-    .url-box { background:#e9ecef; padding:10px; border-radius:6px; font-family:monospace; word-break:break-all; margin:10px 0; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XONITER · Remote Command Executor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            background-color: #000000;
+            color: #00ff00;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Barra de navegación */
+        nav {
+            background-color: #000000;
+            border-bottom: 1px solid #00ff00;
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        nav a {
+            color: #00ff00;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            font-size: 18px;
+            font-weight: 500;
+            transition: 0.3s;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            background-color: #00ff00;
+            color: #000000;
+            border-radius: 8px;
+        }
+
+        /* Contenedor principal */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            color: #ffffff;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #00ff00;
+            padding-left: 15px;
+        }
+
+        h1 {
+            text-align: center;
+            border-left: none;
+            font-size: 2.8rem;
+            letter-spacing: 2px;
+        }
+
+        .subtitulo {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #bbffbb;
+        }
+
+        /* Tarjetas / secciones */
+        .card {
+            background: #0a0a0a;
+            border: 1px solid #00ff00;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0,255,0,0.15);
+        }
+
+        /* Información del servidor */
+        .server-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            background: #0d0d0d;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            border: 1px solid #2a2a2a;
+        }
+        .server-info span {
+            color: #88ff88;
+        }
+
+        /* Formulario */
+        .command-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: #111;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border-radius: 8px;
+            resize: vertical;
+        }
+        .input-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 10px;
+            background: #111;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        button:hover {
+            background: #ffffff;
+            transform: scale(1.02);
+            box-shadow: 0 0 10px #00ff00;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Salida de comandos */
+        .output {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        .output pre {
+            background: #111;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #bbffbb;
+            margin: 8px 0;
+        }
+        .stdout { color: #00ff9d; }
+        .stderr { color: #ff6b6b; }
+        .meta {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        .badge {
+            background-color: #00ff00;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #2a6b2a;
+            color: #88ff88;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+            nav a {
+                margin: 0 5px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
-<body>                                                                                                                                                                                        
-  <div class="container">                                                                                                                                                                     
-    <h1>XONITER - Remote Command Executor</h1>                                                                                                                                                                   
-    <p class="warn"><strong>WARNING:</strong> This page executes commands on the system. Do not expose to untrusted networks.</p>
-    
-    {% if sudo_active %}
-    <div class="success">
-      <strong>✓ Sudo Mode Enabled:</strong> Running with elevated privileges<br>
-      <small>All commands will execute with sudo automatically</small>
+<body>
+
+<nav>
+    <a href="https://github.com/XONIDU/xoniter" target="_blank">GitHub</a>
+    <a href="https://xonipage.xonidu.com/" target="_blank">XONIDU</a>
+</nav>
+
+<div class="container" id="inicio">
+    <h1>⚡ XONITER 2026</h1>
+    <div class="subtitulo">🐧 Ejecuta comandos remotos desde tu navegador · Modo confirmación siempre activo</div>
+
+    <!-- Información del servidor -->
+    <div class="card" id="info">
+        <h2>🖥️ Estado del servidor</h2>
+        <div class="server-info">
+            <div>🌐 URL de acceso: <span id="fullUrl">{{ full_url }}</span></div>
+            <div>📡 Red: <span id="networkInfo">{{ network_info }}</span></div>
+            <div>👤 Usuario: <span id="user">{{ user }}</span></div>
+            <div>🔐 Sudo: <span id="sudoStatus">{{ sudo_status }}</span></div>
+        </div>
+        {% if sudo_active %}
+        <div class="badge">✅ Modo sudo ACTIVADO</div>
+        {% else %}
+        <div class="badge" style="background:#555; color:#eee;">⚠️ Modo sudo DESACTIVADO</div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="warn">
-      <strong>⚠ Sudo Mode Disabled:</strong> Running without elevated privileges<br>
-      <small>Commands will not have sudo permissions</small>
+
+    <!-- Formulario de comandos -->
+    <div class="card" id="comandos">
+        <h2>💻 Ejecutar comando</h2>
+        <form method="POST" class="command-form">
+            <textarea name="cmd" rows="5" placeholder="Ingresa el comando a ejecutar...&#10;Ejemplos:&#10;  uname -a&#10;  df -h&#10;  free -h&#10;  systemctl status sshd">{{ command }}</textarea>
+            <div class="input-group">
+                <input type="number" name="timeout" placeholder="Timeout (segundos, opcional)" value="{{ timeout_value }}" step="0.5" min="0">
+                <button type="submit">🚀 Ejecutar comando</button>
+            </div>
+        </form>
+
+        {% if ran %}
+        <div class="output">
+            <h3>📋 Comando ejecutado</h3>
+            <pre>{{ command }}</pre>
+
+            {% if error %}
+            <h3 style="color:#ff6b6b;">❌ Error</h3>
+            <pre style="color:#ff6b6b;">{{ error }}</pre>
+            {% endif %}
+
+            <h3>📤 STDOUT</h3>
+            <pre class="stdout">{{ stdout or "(sin salida)" }}</pre>
+
+            <h3>⚠️ STDERR</h3>
+            <pre class="stderr">{{ stderr or "(sin errores)" }}</pre>
+
+            <div class="meta">
+                🔢 Código de retorno: <strong>{{ rc }}</strong> &nbsp;|&nbsp;
+                ⏱️ Tiempo de ejecución: <strong>{{ elapsed }}</strong>
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
-    
-    <!-- Access Information -->
-    <div class="info">
-      <h3>Server Access</h3>
-      <p>Use one of these URLs to access from other devices:</p>
-      <div class="url-box">{{ full_url }}</div>
-      <p><small>Network: {{ network_info }}</small></p>
-      <p><em>Note: Scan the QR code shown in the terminal for quick access</em></p>
-    </div>
-    
-    <p class="meta">Server: <strong>{{ host }}:{{ port }}</strong> &nbsp; • &nbsp; User: <strong>{{ user }}</strong> &nbsp; • &nbsp; Sudo: <strong>{{ sudo_status }}</strong></p>                                                                  
-                                                                                                                                                                                              
-    <form method="post">                                                                                                                                                                      
-      <label for="cmd">Command (paste full command or multiple commands):</label><br>                                                                                                     
-      <textarea name="cmd" id="cmd" placeholder="Example: ls -la /home or uname -a">{{ cmd_escaped }}</textarea><br>                                                                              
-      <label for="timeout">Timeout (seconds, empty = no limit):</label>                                                                                                                     
-      <input type="number" name="timeout" id="timeout" min="1" value="{{ timeout_value }}"><br>                                                                                               
-      <button type="submit" class="btn">Execute Command</button>                                                                                                                                                      
-    </form>
 
-    {% if ran %}
-      <h3>Executed Command:</h3>
-      <pre>{{ command }}</pre>
+    <footer>
+        <p>XONITER 2026 · Código abierto bajo MIT · Desarrollado por Darian Alberto Camacho Salas</p>
+        <p>⚠️ Herramienta diseñada SOLO para redes locales confiables. Cada comando requiere confirmación en la terminal del servidor.</p>
+        <p>🐧 #SomosXONIDU</p>
+    </footer>
+</div>
 
-      {% if error %}
-        <h3 style="color:crimson">Error:</h3>
-        <pre style="color:crimson">{{ error }}</pre>
-      {% endif %}
-
-      <h3>STDOUT Output:</h3>
-      <pre>{{ stdout }}</pre>
-
-      <h3>STDERR Output:</h3>
-      <pre>{{ stderr }}</pre>
-
-      <p class="meta">Return code: <strong>{{ rc }}</strong> — Time: <strong>{{ elapsed }}</strong></p>
-    {% endif %}
-
-    <p class="meta">Tip: To limit exposure, bind to 127.0.0.1 or use a firewall. All commands execute with sudo if enabled.</p>
-  </div>
+<script>
+    // Solo para asegurar que la URL se muestra correctamente
+    document.addEventListener('DOMContentLoaded', function() {
+        // No se necesita lógica adicional, todo lo maneja Flask con Jinja2
+        console.log("XONITER UI cargada");
+    });
+</script>
 </body>
 </html>
