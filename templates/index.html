@@ -19,12 +19,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
         }
 
         /* Barra de navegación */
         nav {
             background-color: #000000;
-            border-bottom: 1px solid #00ff00;
+            border-bottom: 2px solid #00ff00;
             padding: 12px 0;
             position: sticky;
             top: 0;
@@ -52,10 +53,10 @@
 
         /* Contenedor principal */
         .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            width: 92%;
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 10px 20px;
         }
 
         h1, h2, h3 {
@@ -75,12 +76,12 @@
 
         .subtitulo {
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin-bottom: 30px;
-            color: #bbffbb;
+            color: #88ff88;
         }
 
-        /* Tarjetas / secciones */
+        /* Tarjetas */
         .card {
             background: #0a0a0a;
             border: 1px solid #00ff00;
@@ -92,24 +93,39 @@
 
         .card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 0 20px rgba(0,255,0,0.15);
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.12);
         }
 
-        /* Información del servidor */
+        /* Info del servidor */
         .server-info {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             justify-content: space-between;
             background: #0d0d0d;
-            padding: 15px;
+            padding: 15px 20px;
             border-radius: 12px;
-            margin-bottom: 20px;
-            font-family: monospace;
             border: 1px solid #2a2a2a;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
         }
         .server-info span {
             color: #88ff88;
+        }
+
+        .badge {
+            background-color: #00ff00;
+            color: #000;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .badge-off {
+            background-color: #555;
+            color: #ddd;
         }
 
         /* Formulario */
@@ -120,34 +136,46 @@
         }
         textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: #111;
             border: 1px solid #00ff00;
             color: #00ff00;
             font-family: 'Courier New', monospace;
-            font-size: 14px;
-            border-radius: 8px;
+            font-size: 15px;
+            border-radius: 10px;
             resize: vertical;
+            transition: border 0.3s;
+        }
+        textarea:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
         }
         .input-group {
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
+            align-items: center;
         }
         .input-group input {
             flex: 1;
-            padding: 10px;
+            min-width: 150px;
+            padding: 12px 16px;
             background: #111;
             border: 1px solid #00ff00;
             color: #00ff00;
-            border-radius: 8px;
-            font-family: monospace;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+        }
+        .input-group input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
         }
         button {
             background: #00ff00;
             color: #000;
             border: none;
-            padding: 12px 24px;
+            padding: 14px 32px;
             border-radius: 40px;
             font-weight: bold;
             cursor: pointer;
@@ -158,63 +186,79 @@
         button:hover {
             background: #ffffff;
             transform: scale(1.02);
-            box-shadow: 0 0 10px #00ff00;
+            box-shadow: 0 0 20px #00ff00;
         }
         button:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
+        }
+        .btn-submit {
+            background: #00ff00;
+            color: #000;
+            padding: 14px 40px;
+            font-size: 1.1rem;
         }
 
-        /* Salida de comandos */
+        /* Resultados */
         .output {
             background: #0a0a0a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 20px;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 20px;
+            margin-top: 25px;
             font-family: 'Courier New', monospace;
-            font-size: 13px;
+            font-size: 14px;
         }
         .output pre {
             background: #111;
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             overflow-x: auto;
             white-space: pre-wrap;
             word-break: break-word;
             color: #bbffbb;
             margin: 8px 0;
+            border-left: 3px solid #00ff00;
         }
-        .stdout { color: #00ff9d; }
+        .stdout { color: #66ffaa; }
         .stderr { color: #ff6b6b; }
-        .meta {
-            font-size: 0.8rem;
+        .meta-info {
+            font-size: 0.85rem;
             color: #888;
-            margin-top: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #222;
+        }
+        .meta-info strong {
+            color: #00ffaa;
         }
 
-        .badge {
-            background-color: #00ff00;
-            color: #000;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            display: inline-block;
-            margin-right: 8px;
+        /* Estado sudo */
+        .sudo-on {
+            color: #00ff00;
+            border-left: 4px solid #00ff00;
+            padding-left: 10px;
+        }
+        .sudo-off {
+            color: #ffaa00;
+            border-left: 4px solid #ffaa00;
+            padding-left: 10px;
         }
 
+        /* footer */
         footer {
             text-align: center;
             margin-top: 40px;
             padding: 20px;
             border-top: 1px solid #2a6b2a;
             color: #88ff88;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            width: 100%;
         }
 
         @media (max-width: 768px) {
             .container {
-                width: 95%;
+                width: 98%;
+                padding: 5px 10px;
             }
             nav a {
                 margin: 0 5px;
@@ -224,33 +268,40 @@
             h1 {
                 font-size: 2rem;
             }
+            .server-info {
+                flex-direction: column;
+                gap: 8px;
+            }
         }
     </style>
 </head>
 <body>
 
 <nav>
+    <a href="#inicio">XONITER</a>
+    <a href="#info">Servidor</a>
+    <a href="#comandos">Comandos</a>
     <a href="https://github.com/XONIDU/xoniter" target="_blank">GitHub</a>
     <a href="https://xonipage.xonidu.com/" target="_blank">XONIDU</a>
 </nav>
 
 <div class="container" id="inicio">
     <h1>⚡ XONITER 2026</h1>
-    <div class="subtitulo">🐧 Ejecuta comandos remotos desde tu navegador · Modo confirmación siempre activo</div>
+    <div class="subtitulo">🐧 Ejecuta comandos remotos desde tu navegador · Confirmación siempre activa en terminal</div>
 
     <!-- Información del servidor -->
     <div class="card" id="info">
         <h2>🖥️ Estado del servidor</h2>
         <div class="server-info">
-            <div>🌐 URL de acceso: <span id="fullUrl">{{ full_url }}</span></div>
-            <div>📡 Red: <span id="networkInfo">{{ network_info }}</span></div>
-            <div>👤 Usuario: <span id="user">{{ user }}</span></div>
-            <div>🔐 Sudo: <span id="sudoStatus">{{ sudo_status }}</span></div>
+            <div>🌐 URL de acceso: <span>{{ full_url }}</span></div>
+            <div>📡 Red: <span>{{ network_info }}</span></div>
+            <div>👤 Usuario: <span>{{ user }}</span></div>
+            <div>🔐 Sudo: <span>{{ sudo_status }}</span></div>
         </div>
         {% if sudo_active %}
-        <div class="badge">✅ Modo sudo ACTIVADO</div>
+        <div class="sudo-on">✅ Modo sudo ACTIVADO · Los comandos se ejecutarán con privilegios elevados</div>
         {% else %}
-        <div class="badge" style="background:#555; color:#eee;">⚠️ Modo sudo DESACTIVADO</div>
+        <div class="sudo-off">⚠️ Modo sudo DESACTIVADO · Los comandos se ejecutarán sin privilegios</div>
         {% endif %}
     </div>
 
@@ -261,28 +312,29 @@
             <textarea name="cmd" rows="5" placeholder="Ingresa el comando a ejecutar...&#10;Ejemplos:&#10;  uname -a&#10;  df -h&#10;  free -h&#10;  systemctl status sshd">{{ command }}</textarea>
             <div class="input-group">
                 <input type="number" name="timeout" placeholder="Timeout (segundos, opcional)" value="{{ timeout_value }}" step="0.5" min="0">
-                <button type="submit">🚀 Ejecutar comando</button>
+                <button type="submit" class="btn-submit">🚀 Ejecutar comando</button>
             </div>
         </form>
 
+        <!-- RESULTADOS -->
         {% if ran %}
         <div class="output">
-            <h3>📋 Comando ejecutado</h3>
+            <h3 style="border-left-color:#00ff00; color:#00ffaa;">📋 Comando ejecutado</h3>
             <pre>{{ command }}</pre>
 
             {% if error %}
-            <h3 style="color:#ff6b6b;">❌ Error</h3>
-            <pre style="color:#ff6b6b;">{{ error }}</pre>
+            <h3 style="border-left-color:#ff6b6b; color:#ff6b6b;">❌ Error</h3>
+            <pre style="color:#ff6b6b; border-left-color:#ff6b6b;">{{ error }}</pre>
             {% endif %}
 
-            <h3>📤 STDOUT</h3>
-            <pre class="stdout">{{ stdout or "(sin salida)" }}</pre>
+            <h3 style="border-left-color:#66ffaa; color:#66ffaa;">📤 STDOUT</h3>
+            <pre class="stdout">{{ stdout if stdout else '(sin salida)' }}</pre>
 
-            <h3>⚠️ STDERR</h3>
-            <pre class="stderr">{{ stderr or "(sin errores)" }}</pre>
+            <h3 style="border-left-color:#ff6b6b; color:#ff6b6b;">⚠️ STDERR</h3>
+            <pre class="stderr">{{ stderr if stderr else '(sin errores)' }}</pre>
 
-            <div class="meta">
-                🔢 Código de retorno: <strong>{{ rc }}</strong> &nbsp;|&nbsp;
+            <div class="meta-info">
+                🔢 Código de retorno: <strong>{{ rc }}</strong> &nbsp;·&nbsp;
                 ⏱️ Tiempo de ejecución: <strong>{{ elapsed }}</strong>
             </div>
         </div>
@@ -296,12 +348,5 @@
     </footer>
 </div>
 
-<script>
-    // Solo para asegurar que la URL se muestra correctamente
-    document.addEventListener('DOMContentLoaded', function() {
-        // No se necesita lógica adicional, todo lo maneja Flask con Jinja2
-        console.log("XONITER UI cargada");
-    });
-</script>
 </body>
 </html>
