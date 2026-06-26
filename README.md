@@ -135,6 +135,9 @@ Use the timeout field to limit how long a command can run (in seconds). This pre
 xoniter/
 ├── xoniter.py           # Main application (Python/Flask)
 ├── start.py             # Installer/launcher script (multi-strategy)
+├── START_XONITER.bat    # Windows launcher with admin privileges
+├── START_XONITER.sh     # Linux launcher
+├── START_XONITER.command # macOS launcher
 ├── templates/
 │   └── index.html       # Web interface template
 ├── README.md            # This file
@@ -151,8 +154,55 @@ xoniter/
 
 ### Windows
 - Creates `START_XONITER.bat` for easy double-click execution
+- **The .bat file requests administrator privileges automatically**
 - No special package manager flags needed
 - Uses `ensurepip` or downloads `get-pip.py` if needed
+
+**START_XONITER.bat content:**
+```batch
+@echo off
+title XONITER 2026 - Remote Command Executor
+color 0A
+
+:: ============================================================
+:: SOLICITAR PERMISOS DE ADMINISTRADOR
+:: ============================================================
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Solicitando permisos de administrador...
+    echo.
+    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
+    echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%temp%\getadmin.vbs"
+    "%temp%\getadmin.vbs"
+    del "%temp%\getadmin.vbs"
+    exit /B
+)
+
+:: ============================================================
+:: EJECUTAR start.py CON PERMISOS DE ADMINISTRADOR
+:: ============================================================
+cls
+echo ============================================================
+echo           XONITER 2026 - Remote Command Executor
+echo              (Modo Administrador)
+echo ============================================================
+echo.
+echo [OK] Permisos de administrador obtenidos
+echo.
+echo Iniciando XONITER...
+echo.
+echo [INFO] Ejecuta comandos remotos desde tu navegador
+echo [INFO] Accede a: http://localhost:5100
+echo [INFO] Confirma cada comando en la terminal del servidor
+echo.
+echo Presiona Ctrl+C para detener el servidor
+echo ============================================================
+echo.
+
+python start.py
+
+pause
+```
 
 ### macOS
 - Creates `START_XONITER.command` launcher
@@ -282,3 +332,13 @@ Contact the XONIDU team through:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🙏 Acknowledgments
+
+- Flask framework for the web interface
+- Python community for the amazing libraries
+- Arch Linux community for AUR support
+- UNAM FESC for the educational environment
+
+---
+
+**#Somos XONIDU**
