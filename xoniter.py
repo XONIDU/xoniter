@@ -270,7 +270,7 @@ def print_startup_banner(host, port, full_url, no_qr):
     print(f"{Colors.GREEN}✅ Host: {host} | Port: {port}{Colors.END}")
     print(f"{Colors.YELLOW}⚠️  No command restrictions - ALL commands are allowed{Colors.END}")
     if config.get("ask_for_confirmation"):
-        print(f"{Colors.YELLOW}🔐 Confirmation mode: ENABLED (asks before each command){Colors.END}")
+        print(f"{Colors.YELLOW}Confirmation mode: ENABLED (asks before each command){Colors.END}")
     print(f"{Colors.PURPLE}{Colors.BOLD}═══════════════════════════════════════════════════════════{Colors.END}")
     print(f"{Colors.CYAN}Press Ctrl+C to stop{Colors.END}")
     print("")
