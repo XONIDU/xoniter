@@ -450,7 +450,6 @@ color 1F
 echo ========================================
 echo      XONITER 2026 - Remote Executor
 echo      Developed by Darian Alberto Camacho Salas
-echo      #Somos XONIDU
 echo ========================================
 echo.
 python start.py
